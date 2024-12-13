@@ -31,11 +31,10 @@ const registerUser = async (req, res) => {
         const profilePicture = await uploadImageToCloudinary(image)
 
         //creating data instance
-        const user = new User({ userName, fullName, email, password,profilePicture })
+        const user = new User({ userName, fullName, email, password, profilePicture })
 
         //generating and adding the tokens midway through
         const { accessToken, refreshToken } = generateAccessandRefreshTokens(user)
-        user.refreshToken = refreshToken
 
         //saving the data
         await user.save();
@@ -74,29 +73,22 @@ const registerUser = async (req, res) => {
 
 
 const loginUser = async function (req, res) {
-    const { userName, email, password } = req.body;
+    const { userNameOrEmail, password } = req.body;
     try {
-        if (!userName && !email) return res.status(400).json({
-            message: "userName or email is required!"
-        })
-        const user = await User.findOne(
-            {
-                $or: [
-                    { email: email },
-                    { userName: userName }
-                ]
-            }
-        )
+        if (!userNameOrEmail || !password) {
+            return res.status(400).json({ message: "Username, email, and password are required!" });
+        }
+        const user = await User.findOne({
+            $or: [{ email: userNameOrEmail },{ userName: userNameOrEmail }]
+        });
         if (!user) return res.status(404).json({
-            message: "No user found with such credentials"
+            message: "Invalid credentials"
         })
         const isPasswordCorrect = await bcrypt.compare(password, user.password)
         if (!isPasswordCorrect) return res.status(401).json({
             message: "Invalid credentials"
         })
         const { accessToken, refreshToken } = generateAccessandRefreshTokens(user)
-        const updateRefreshTokenInDB = await User.findOneAndUpdate({ $or: [{ email: email }, { userName: userName }] }, { $set: { refreshToken } }, { new: true })
-        if (!updateRefreshTokenInDB) return res.status(404).json({ message: "User not found" });
         res
             .cookie("refreshToken", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 })
             .status(200)
@@ -107,7 +99,6 @@ const loginUser = async function (req, res) {
                     fullname: user.fullName,
                     profilePicture: user.profilePicture,
                     email: user.email,
-
                     _id: user._id
                 },
                 tokens: {
@@ -115,6 +106,7 @@ const loginUser = async function (req, res) {
                 }
             })
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: "An error occurred during login" });
     }
 }
@@ -145,9 +137,9 @@ const logoutUser = async (req, res) => {
 
 //update user data
 
-const updateUserData = async (req,res) => {
+const updateUserData = async (req, res) => {
     console.log(req.cookies);
-    const {refreshToken} = req.cookies;
+    const { refreshToken } = req.cookies;
     var decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
     console.log(decoded);
     res.send("done")
@@ -161,4 +153,4 @@ const updateUserData = async (req,res) => {
 
 
 
-export { registerUser, loginUser, logoutUser,updateUserData }
+export { registerUser, loginUser, logoutUser, updateUserData }
