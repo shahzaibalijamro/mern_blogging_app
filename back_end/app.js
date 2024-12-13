@@ -8,8 +8,4 @@ app.use(cors({
     credentials: true,
 }));
 app.use(cookieParser());
-app.use((req, res, next) => {
-    console.log("Request Cookies:", req.cookies);
-    next();
-});
 export {app}
