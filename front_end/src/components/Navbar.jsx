@@ -2,12 +2,40 @@ import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { emptyUser } from '../config/redux/reducers/userSlice';
+import axios from 'axios';
+import { setAccessToken } from '../config/redux/reducers/accessTokenSlice';
 const Navbar = () => {
-    const userSelector = useSelector(state => state.user.user[0])
+    const userSelector = useSelector(state => state.user.user.currentUser)
+    const tokenSelector = useSelector(state => state.token.accessToken)
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
     const currentPage = location.pathname;
+    useEffect(() => {
+        if (tokenSelector) return;
+        const refreshUserData = async () => {
+            try {
+                const response = await axios.get("http://localhost:3000/api/v1/refresh", {
+                    withCredentials: true,
+                });
+                dispatch(setAccessToken(
+                    {
+                        token: response.data.accessToken
+                    }
+                ))
+                dispatch(addUser(
+                    {
+                        currentUser: response.data.user
+                    }
+                ))
+                console.log(response.data.accessToken);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        refreshUserData();
+
+    })
     const logOutUser = async () => {
         try {
             await signOutUser()
@@ -25,7 +53,7 @@ const Navbar = () => {
                     <Link to={'/'} className="btn logo btn-ghost text-xl">Blogging App</Link>
                 </div>
                 <div className="flex-none navbarRight gap-2">
-                    <a className="btn btn-ghost nav-username text-xl">{userSelector.name}</a>
+                    <a className="btn btn-ghost nav-username text-xl">{userSelector.fullname}</a>
                     <div className="dropdown items-center dropdown-end">
                         <div
                             tabIndex={0}
@@ -36,7 +64,7 @@ const Navbar = () => {
                                 <img
                                     id="pfp"
                                     alt="Tailwind CSS Navbar component"
-                                    src={userSelector.pfp}
+                                    src={userSelector.profilePicture}
                                 />
                             </div>
                         </div>
@@ -113,30 +141,30 @@ const Navbar = () => {
                                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
                             >
                                 {currentPage === '/login' ? <>
-                                <li className="profileBtn">
-                                    <Link to={'/'} className="justify-between">
-                                        Home
-                                    </Link>
-                                </li>
-                                <li className="profileBtn">
-                                    <Link to={'/register'} className="justify-between">
-                                        Register
-                                    </Link>
-                                </li>
-                                </> : currentPage === '/register' ? 
-                                <><li className="dashboardBtn">
-                                    <Link to={'/'}>Home</Link>
-                                </li>
-                                    <li className="dashboardBtn">
-                                        <Link to={'/login'}>Login</Link>
+                                    <li className="profileBtn">
+                                        <Link to={'/'} className="justify-between">
+                                            Home
+                                        </Link>
                                     </li>
+                                    <li className="profileBtn">
+                                        <Link to={'/register'} className="justify-between">
+                                            Register
+                                        </Link>
+                                    </li>
+                                </> : currentPage === '/register' ?
+                                    <><li className="dashboardBtn">
+                                        <Link to={'/'}>Home</Link>
+                                    </li>
+                                        <li className="dashboardBtn">
+                                            <Link to={'/login'}>Login</Link>
+                                        </li>
                                     </> : <>
-                                <li className="profileBtn">
-                                    <Link to={'/login'} className="justify-between">
-                                        Login
-                                    </Link>
-                                </li>
-                            </>}
+                                        <li className="profileBtn">
+                                            <Link to={'/login'} className="justify-between">
+                                                Login
+                                            </Link>
+                                        </li>
+                                    </>}
                             </ul>
                         </div>
                     </div>

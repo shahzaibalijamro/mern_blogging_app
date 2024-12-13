@@ -6,8 +6,8 @@ export const userSlice = createSlice({
     },
     reducers: {
         addUser: (state, action) => {
-            const {user} = action.payload
-            state.user = user
+            const currentUser = action.payload
+            state.user = {...currentUser}
         },
         emptyUser : (state,action) => {
             state.user = {}

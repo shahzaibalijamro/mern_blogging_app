@@ -44,6 +44,8 @@ const Home = () => {
   }
 
   useEffect(() => {
+    console.log("home page useeffect");
+    
     (async () => {
       try {
         if (!blogSelector.length > 0) {
