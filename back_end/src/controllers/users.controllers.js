@@ -79,7 +79,7 @@ const loginUser = async function (req, res) {
             return res.status(400).json({ message: "Username, email, and password are required!" });
         }
         const user = await User.findOne({
-            $or: [{ email: userNameOrEmail },{ userName: userNameOrEmail }]
+            $or: [{ email: userNameOrEmail }, { userName: userNameOrEmail }]
         });
         if (!user) return res.status(404).json({
             message: "Invalid credentials"
@@ -152,5 +152,45 @@ const updateUserData = async (req, res) => {
 }
 
 
+//send user data upon reload
 
-export { registerUser, loginUser, logoutUser, updateUserData }
+const refreshUser = async (req, res) => {
+    try {
+        const currentRefreshToken = req.cookies.refreshToken;
+        if (!currentRefreshToken) {
+            return res.status(401).json({ message: "Please login again!" });
+        }
+        // Decode and verify the token
+        const decoded = jwt.verify(currentRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+        const decodedId = decoded._id;
+        const user = await User.findById(decodedId);
+        if (!user) return res.status(400).json({
+            message: "User not found"
+        })
+        const { accessToken, refreshToken } = generateAccessandRefreshTokens(user)
+        res
+            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 })
+            .status(200)
+            .json({
+                message: "Token verified successfully!",
+                accessToken
+            })
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ message: "Refresh token has expired. Please login again!" });
+        }
+
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: "Invalid refresh token. Please login again!" });
+        }
+
+        console.error(error);
+        res.status(500).json({ message: "Internal server error!" });
+    }
+};
+
+
+
+
+
+export { registerUser, loginUser, logoutUser, updateUserData, refreshUser }

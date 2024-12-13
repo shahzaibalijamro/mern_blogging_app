@@ -1,5 +1,5 @@
 import express from "express"
-import { loginUser, logoutUser, registerUser,updateUserData } from "../controllers/users.controllers.js";
+import { loginUser, logoutUser, refreshUser, registerUser,updateUserData } from "../controllers/users.controllers.js";
 import { upload } from "../middlewares/multer.middelware.js";
 
 const userRouter = express.Router();
@@ -15,5 +15,8 @@ userRouter.post("/logout", logoutUser)
 
 //update User
 userRouter.post("/update", updateUserData)
+
+//update User
+userRouter.get("/refresh", refreshUser)
 
 export { userRouter }
