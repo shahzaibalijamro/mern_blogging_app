@@ -1,0 +1,212 @@
+.input-bordered{
+    border-color: #56585c6b !important;
+}
+
+.my-container{
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0px 20px;
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+::-webkit-scrollbar-corner {
+    background: #ccc;
+}
+
+
+.group {
+    display: flex !important;
+    line-height: 28px !important;
+    align-items: center !important;
+    position: relative !important;
+    max-width: 1200px !important;
+    width: 100% !important;
+    border: 2px solid #A1A1A1;
+    border-radius: 8px;
+}
+
+.input-search {
+    width: 100% !important;
+    height: 40px !important;
+    line-height: 28px !important;
+    padding: 0 1rem !important;
+    padding-left: 2.5rem !important;
+    border-radius: 6px !important;
+    outline: none !important;
+    background-color: transparent !important;
+    color: #A1A1A1 !important;
+    transition: .3s ease !important;
+}
+
+.input::placeholder {
+    color: #A1A1A1 !important;
+}
+
+.input:focus,
+input:hover {
+    outline: none !important;
+    border-color: #7749f8 !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 2px #7749f8 !important;
+}
+
+.icon {
+    position: absolute !important;
+    left: 1rem !important;
+    fill: black !important;
+    width: 1rem !important;
+    height: 1rem !important;
+}
+
+
+
+@media(min-width:1300px){
+    #sidebarSingle{
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media(max-width:1000px){
+    .my-5{
+        padding: 0px 3px !important;
+    }
+    #sidebarSingle{
+        order: -1 !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .sidebarIn{
+        order: -1 !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px !important;
+    }
+    .order-1{
+        order: -1 !important;
+        margin-bottom: 10px !important;
+    }
+    .order0{
+        order: 0 !important;
+    }
+    .order1{
+        order: 1 !important;
+    }
+    .main-wrapperSingle{
+        flex-wrap: wrap !important;
+    }
+}
+
+@media(max-width:700px){
+    /* #sidebar{
+        order: -1 !important;
+        width: 100%;
+    }
+    #left{
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .main-wrapper{
+        flex-wrap: wrap !important;
+    } */
+    .greet{
+        padding: 1.2rem !important;
+    }
+    .greetText{
+        font-size: 1.3rem !important;
+    }
+    #my-blog-wrapper{
+        padding: 1rem !important;
+    }
+    .blogImg{
+        width: 60px !important;
+        max-width: 60px !important;
+        min-width: 60px !important;
+    }
+    .blogWrapper{
+        align-items: center !important;
+    }
+}
+
+@media(max-width:500px){
+    /* #sidebar{
+        order: -1 !important;
+        width: 100%;
+    }
+    #left{
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .main-wrapper{
+        flex-wrap: wrap !important;
+    } */
+    .greet{
+        padding: 1rem !important;
+    }
+    .greetText{
+        font-size: 1.2rem !important;
+        text-align: center;
+    }
+    #my-blog-wrapper{
+        padding: 0.3rem !important;
+    }
+    .blogImg{
+        width: 60px !important;
+        max-width: 60px !important;
+        min-width: 60px !important;
+    }
+    .blogWrapper{
+        align-items: center !important;
+    }
+    .navbar{
+        padding: 8px 0.5rem !important;
+    }
+    .navbarRight{
+        gap: 0rem !important;
+    }
+    .logo{
+        padding: 0px 0px 0px 10px !important;
+    }
+    .nav-username{
+        padding: 0px 6px 0px 0px !important;
+    }
+    .text-xl{
+        font-size: 1rem !important;
+    }
+    .text-lg{
+        font-size: 1rem !important;
+    }
+    .blogTime{
+        font-size: 14px !important;
+    }
+    .my-5{
+        margin: 1rem 0rem !important;
+    }
+}
+
+
+@media(max-width:450px){
+    #my-blog-wrapper{
+        padding: 0rem !important;
+    }
+}

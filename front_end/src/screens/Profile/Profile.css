@@ -1,0 +1,128 @@
+.input-bordered{
+    border-color: #56585c6b !important;
+    background-color: white !important;
+}
+
+.my-container{
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0px 20px;
+}
+
+#snackbar1 {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #7749f8;
+    color: #fff;
+    text-align: center;
+    border-radius: 2px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+  }
+
+  #snackbar1.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  }
+
+#snackbar2 {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #7749f8;
+    color: #fff;
+    text-align: center;
+    border-radius: 2px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+  }
+
+  #snackbar2.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  }
+#snackbar3 {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #7749f8;
+    color: #fff;
+    text-align: center;
+    border-radius: 2px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+  }
+
+  #snackbar3.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  }
+
+  @keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+  }
+
+  @keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+  }
+
+
+  @media(max-width:700px){
+    /* #sidebar{
+        order: -1 !important;
+        width: 100%;
+    }
+    #left{
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .main-wrapper{
+        flex-wrap: wrap !important;
+    } */
+    .greet{
+        padding: 1.2rem !important;
+    }
+    .greetText{
+        font-size: 1.3rem !important;
+    }
+}
+
+@media(max-width:500px){
+    .greet{
+        padding: 1rem !important;
+    }
+    .greetText{
+        font-size: 1.2rem !important;
+        text-align: center;
+    }
+    .navbar{
+        padding: 8px 0.5rem !important;
+    }
+    .navbarRight{
+        gap: 0rem !important;
+    }
+    .logo{
+        padding: 0px 0px 0px 10px !important;
+    }
+    .nav-username{
+        padding: 0px 6px 0px 0px !important;
+    }
+    .text-xl{
+        font-size: 1rem !important;
+    }
+    .text-3xl{
+        font-size: 1.4rem !important;
+    }
+}
