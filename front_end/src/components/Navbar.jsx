@@ -1,31 +1,46 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { emptyUser } from '../config/redux/reducers/userSlice';
+import { addUser, emptyUser } from '../config/redux/reducers/userSlice';
 import axios from 'axios';
 import { setAccessToken } from '../config/redux/reducers/accessTokenSlice';
 const Navbar = () => {
     const userSelector = useSelector(state => state.user.user.currentUser)
+    console.log(userSelector);
+    
     const tokenSelector = useSelector(state => state.token.accessToken)
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
     const currentPage = location.pathname;
     useEffect(() => {
-        if (tokenSelector) return;
+        if (tokenSelector) {
+            (async()=>{
+                const isTokenExpired = await axios.post("http://localhost:3000/api/v1/check",{
+                    token: tokenSelector,
+                }, {
+                    withCredentials: true,
+                });
+                console.log(isTokenExpired.data);
+            })()
+            return
+        }
         const refreshUserData = async () => {
             try {
                 const response = await axios.get("http://localhost:3000/api/v1/refresh", {
                     withCredentials: true,
                 });
+                const user = response.data.user
+                const token = response.data.accessToken
+                console.log(user);
                 dispatch(setAccessToken(
                     {
-                        token: response.data.accessToken
+                        token: token
                     }
                 ))
                 dispatch(addUser(
                     {
-                        currentUser: response.data.user
+                        currentUser: user
                     }
                 ))
                 console.log(response.data.accessToken);
@@ -34,8 +49,7 @@ const Navbar = () => {
             }
         };
         refreshUserData();
-
-    })
+    },[])
     const logOutUser = async () => {
         try {
             await signOutUser()
@@ -53,7 +67,7 @@ const Navbar = () => {
                     <Link to={'/'} className="btn logo btn-ghost text-xl">Blogging App</Link>
                 </div>
                 <div className="flex-none navbarRight gap-2">
-                    <a className="btn btn-ghost nav-username text-xl">{userSelector.fullname}</a>
+                    <a className="btn btn-ghost nav-username text-xl">{userSelector.fullName}</a>
                     <div className="dropdown items-center dropdown-end">
                         <div
                             tabIndex={0}
