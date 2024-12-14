@@ -220,29 +220,45 @@ const checkTokenExpiration = async (req, res) => {
 
 
 const resetPassword = async (req, res) => {
-    const { currentPassword, newPassword } = req.body.data;
-    const authHeader = req.headers['authorization'];
-    if (!currentPassword || !newPassword) {
+    try {
+        const { currentPassword, newPassword } = req.body.data;
+        const authHeader = req.headers['authorization'];
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                message: "Insufficient data recieved!"
+            })
+        }
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ message: 'Authorization header missing or invalid' });
+        }
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        if (!decoded) return res.status(400).json({
+            message: "Invalid Access Token"
+        })
+        console.log(decoded);
+        const user = await User.findOne({ email: decoded.email })
+        if (!user) return res.status(400).json({
+            message: "User does not exist!"
+        })
+        const checkPassword = await bcrypt.compare(currentPassword,user.password);
+        if (!checkPassword) return res.status(400).json({
+            isPasswordCorrect: false,
+            message: "Incorrect Password"
+        })
+        user.password = newPassword
+        await user.save()
+        res.status(200).json({
+            isPasswordCorrect: true,
+            message: "Password updated"
+        })
+    } catch (error) {
+        console.log(error);
         return res.status(400).json({
-            message: "Insufficient data recieved!"
+            message: "Something went wrong!",
+            error: error.message || error
         })
     }
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Authorization header missing or invalid' });
-    }
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token,process.env.process.env.ACCESS_TOKEN_SECRET)
-    if (!decoded) return res.status(400).json({
-        message: "Invalid Access Token"
-    })
-    const user = await User.findOne({email: decoded.email})
-    const checkPassword = await bcrypt.compare(user.password,currentPassword);
-    if (!checkPassword) return res.status(400).json({
-        isPasswordCorrect: false
-    })
-    user.password = newPassword
-    await user.save()
-    res.send("done")
 }
 
 export { registerUser, loginUser, logoutUser, updateUserData, refreshUser, checkTokenExpiration, resetPassword }

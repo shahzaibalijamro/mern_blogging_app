@@ -25,7 +25,8 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'Password is required!']
+        required: [true, 'Password is required!'],
+        minlength: [8, 'Password should be at least 8 characters!']
     },
     profilePicture: {
         type: String,
@@ -45,7 +46,9 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("save", async function (next) {
     if (!this.isModified()) return next()
+    const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
     try {
+        if (!regex.test(this.password)) return next(new Error("Password does not meet the required criteria"));
         this.password = await bcrypt.hash(this.password, 10);
         next();
     } catch (error) {

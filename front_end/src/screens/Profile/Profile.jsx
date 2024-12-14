@@ -8,9 +8,9 @@ import axios from 'axios';
 const Profile = () => {
     const dispatch = useDispatch();
     const userSelector = useSelector(state => state.user.user.currentUser);
-        const tokenSelector = useSelector(state => state.token.accessToken?.token)
-        console.log(tokenSelector);
-        
+    const tokenSelector = useSelector(state => state.token.accessToken.token)
+    console.log(tokenSelector);
+
     const [newFullname, setNewFullName] = useState("");
     const [newUserName, setNewUserName] = useState("");
     const [currentPassword, setCurrentPassword] = useState("");
@@ -52,7 +52,7 @@ const Profile = () => {
         try {
             const response = await axios.post("http://localhost:3000/api/v1/reset", {
                 data: {
-                    currentPassword : currentPassword,newPassword : newPassword
+                    currentPassword: currentPassword, newPassword: newPassword
                 }
             }, {
                 headers: {
@@ -62,7 +62,10 @@ const Profile = () => {
             })
             console.log(response.data);
         } catch (error) {
-            console.log(error);
+            console.log(error.response.data);
+            if (error.response.data.message === "Incorrect Password") {
+                showSnackbar("Incorrect Password!", 2000)
+            }
         }
     }
     const clickIcon = () => {
