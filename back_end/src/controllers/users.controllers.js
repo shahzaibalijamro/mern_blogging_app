@@ -190,82 +190,13 @@ const refreshUser = async (req, res) => {
     }
 };
 
-
-const isTokenExpired = (token) => {
-    const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
-    return token.exp < currentTime;
-};
-
-
-//send user data upon reload
-
-// const checkTokenExpiration = async (req, res) => {
-//     // try {
-//         const {accessToken} = req.body;
-//         const checkToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-//         console.log(checkToken);
-//         res.send("Done")
-//     // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//     //     const currentRefreshToken = req.cookies.refreshToken;
-//     //     if (!currentRefreshToken) {
-//     //         return res.status(401).json({ message: "Please login again!" });
-//     //     }
-//     //     // Decode and verify the token
-//     //     const decoded = jwt.verify(currentRefreshToken, process.env.REFRESH_TOKEN_SECRET);
-//     //     const decodedId = decoded._id;
-//     //     const user = await User.findById(decodedId).select('-password -publishedBlogs -refreshToken');
-//     //     if (!user) return res.status(400).json({
-//     //         message: "User not found"
-//     //     })
-//     //     const { accessToken, refreshToken } = generateAccessandRefreshTokens(user)
-//     //     res
-//     //         .cookie("refreshToken", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 })
-//     //         .status(200)
-//     //         .json({
-//     //             message: "Token verified successfully!",
-//     //             accessToken,
-//     //             user
-//     //         })
-//     // } catch (error) {
-//     //     if (error.name === 'TokenExpiredError') {
-//     //         return res.status(401).json({ message: "Refresh token has expired. Please login again!" });
-//     //     }
-
-//     //     if (error.name === 'JsonWebTokenError') {
-//     //         return res.status(401).json({ message: "Invalid refresh token. Please login again!" });
-//     //     }
-
-//     //     console.error(error);
-//     //     res.status(500).json({ message: "Internal server error!" });
-//     // }
-// };
-
 const checkTokenExpiration = async (req, res) => {
     console.log("hit");
-    
+
     const accessToken = req.body.token.token;
     if (!accessToken) {
         console.log("No accessToken found");
-        
+
         return res.status(400).json({
             message: 'Token not provided',
             isValid: false,
@@ -274,7 +205,7 @@ const checkTokenExpiration = async (req, res) => {
     try {
         const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
         console.log("valid");
-        
+
         res.status(200).json({
             isValid: true
         })
@@ -288,4 +219,30 @@ const checkTokenExpiration = async (req, res) => {
 }
 
 
-export { registerUser, loginUser, logoutUser, updateUserData, refreshUser, checkTokenExpiration }
+const resetPassword = async (req, res) => {
+    const { currentPassword, newPassword } = req.body.data;
+    const authHeader = req.headers['authorization'];
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({
+            message: "Insufficient data recieved!"
+        })
+    }
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Authorization header missing or invalid' });
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token,process.env.process.env.ACCESS_TOKEN_SECRET)
+    if (!decoded) return res.status(400).json({
+        message: "Invalid Access Token"
+    })
+    const user = await User.findOne({email: decoded.email})
+    const checkPassword = await bcrypt.compare(user.password,currentPassword);
+    if (!checkPassword) return res.status(400).json({
+        isPasswordCorrect: false
+    })
+    user.password = newPassword
+    await user.save()
+    res.send("done")
+}
+
+export { registerUser, loginUser, logoutUser, updateUserData, refreshUser, checkTokenExpiration, resetPassword }

@@ -1,5 +1,5 @@
 import express from "express"
-import { checkTokenExpiration, loginUser, logoutUser, refreshUser, registerUser,updateUserData } from "../controllers/users.controllers.js";
+import { checkTokenExpiration, loginUser, logoutUser, refreshUser, registerUser,resetPassword,updateUserData } from "../controllers/users.controllers.js";
 import { upload } from "../middlewares/multer.middelware.js";
 
 const userRouter = express.Router();
@@ -16,10 +16,13 @@ userRouter.post("/logout", logoutUser)
 //update User
 userRouter.post("/update", updateUserData)
 
-//update User
+//give new tokens
 userRouter.get("/refresh", refreshUser)
 
-//update User
+//check if the token is expired or not
 userRouter.post("/check", checkTokenExpiration)
+
+//reset Password
+userRouter.post("/reset", resetPassword)
 
 export { userRouter }
