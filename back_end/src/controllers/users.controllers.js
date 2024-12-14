@@ -191,6 +191,11 @@ const refreshUser = async (req, res) => {
 };
 
 
+const isTokenExpired = (token) => {
+    const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+    return token.exp < currentTime;
+};
+
 
 //send user data upon reload
 
@@ -255,17 +260,32 @@ const refreshUser = async (req, res) => {
 // };
 
 const checkTokenExpiration = async (req, res) => {
-    console.log(123);
+    console.log("hit");
     
-        try {
-            const {accessToken} = req.body;
-            const checkToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-            console.log(checkToken);
-            res.send("Done")
-        } catch (error) {
-            console.log(error);
-        }
+    const accessToken = req.body.token.token;
+    if (!accessToken) {
+        console.log("No accessToken found");
+        
+        return res.status(400).json({
+            message: 'Token not provided',
+            isValid: false,
+        });
     }
+    try {
+        const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+        console.log("valid");
+        
+        res.status(200).json({
+            isValid: true
+        })
+    } catch (error) {
+        console.log("Invalid accessToken found");
+
+        return res.status(400).json({
+            isValid: false
+        })
+    }
+}
 
 
-export { registerUser, loginUser, logoutUser, updateUserData, refreshUser,checkTokenExpiration }
+export { registerUser, loginUser, logoutUser, updateUserData, refreshUser, checkTokenExpiration }
