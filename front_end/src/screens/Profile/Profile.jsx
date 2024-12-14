@@ -5,10 +5,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../../config/redux/reducers/userSlice';
 import axios from 'axios';
 import { setAccessToken } from '../../config/redux/reducers/accessTokenSlice';
-import { removeUser } from '../../utils/app.utils';
+import useRemoveUser from '../../utils/app.utils';
 
 const Profile = () => {
     const dispatch = useDispatch();
+    const removeUser = useRemoveUser()
     const userSelector = useSelector(state => state.user.user.currentUser);
     const tokenSelector = useSelector(state => state.token.accessToken.token)
     console.log(tokenSelector);
@@ -46,10 +47,12 @@ const Profile = () => {
     const showSnackbar = (innerText, time = 3000) => {
         var snackbar = document.getElementById(`snackbar`);
         snackbar.innerHTML = innerText;
+        snackbar.style.zIndex = 10000
         snackbar.className = "show";
         setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, time);
     }
-    const passwordReset = async () => {
+    const passwordReset = async (e) => {
+        e.preventDefault()
         const accessToken = tokenSelector;
         try {
             const response = await axios.post("http://localhost:3000/api/v1/reset", {
@@ -65,6 +68,9 @@ const Profile = () => {
             console.log(response.data);
         } catch (error) {
             console.log(error.response.data);
+            if (error.response.data?.error === "User validation failed: password: Password should be at least 8 characters!") {
+                return showSnackbar("Password should be at least 8 characters!", 2000)
+            }
             if (error.response.data.message === "Incorrect Password") {
                 return showSnackbar("Incorrect Password!", 2000)
             }
@@ -202,7 +208,7 @@ const Profile = () => {
             <dialog id="my_modal_2" className="modal">
                 <div className="modal-box bg-white">
                     <div className="gap-4 rounded-xl bg-white">
-                        <form method="dialog" className="modal-backdrop" onSubmit={passwordReset}>
+                        <form onSubmit={passwordReset}>
                             <input
                                 type="text"
                                 placeholder="Your current Password"
