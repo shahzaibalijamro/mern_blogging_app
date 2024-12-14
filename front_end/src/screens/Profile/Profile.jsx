@@ -4,6 +4,8 @@ import './Profile.css'
 import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../../config/redux/reducers/userSlice';
 import axios from 'axios';
+import { setAccessToken } from '../../config/redux/reducers/accessTokenSlice';
+import { removeUser } from '../../utils/app.utils';
 
 const Profile = () => {
     const dispatch = useDispatch();
@@ -64,8 +66,25 @@ const Profile = () => {
         } catch (error) {
             console.log(error.response.data);
             if (error.response.data.message === "Incorrect Password") {
-                showSnackbar("Incorrect Password!", 2000)
+                return showSnackbar("Incorrect Password!", 2000)
             }
+            if (error.response.data.message === "Invalid Access Token") {
+                // If token is invalid or missing, refresh user data
+                try {
+                    const { data } = await axios.get("http://localhost:3000/api/v1/refresh", {
+                        withCredentials: true,
+                    });
+                    const { user, accessToken } = data;
+                    dispatch(setAccessToken({ token: accessToken }));
+                    dispatch(addUser({ currentUser: user }));
+                    // passwordReset()
+                } catch (error) {
+                    console.error("Error refreshing user data:", error);
+                    return removeUser()
+                }
+            }
+            if (error.response.data.message = "User does not exist!") return removeUser()
+            console.log("Niche tak aagaya");
         }
     }
     const clickIcon = () => {
