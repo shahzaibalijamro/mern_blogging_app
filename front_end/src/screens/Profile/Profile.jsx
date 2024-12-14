@@ -6,19 +6,20 @@ import { addUser } from '../../config/redux/reducers/userSlice';
 
 const Profile = () => {
     const dispatch = useDispatch();
-    const userSelector = useSelector(state => state.user.user[0])
-    !userSelector ? getData("users", auth.currentUser.uid)
-        .then(arr => {
-            dispatch(addUser(
-                {
-                    user: arr
-                }
-            ))
-        })
-        .catch(err => {
-            console.log(err);
-        })
-        : null
+    const userSelector = useSelector(state => state.user.user.currentUser)
+
+    // !userSelector ? getData("users", auth.currentUser.uid)
+    //     .then(arr => {
+    //         dispatch(addUser(
+    //             {
+    //                 user: arr
+    //             }
+    //         ))
+    //     })
+    //     .catch(err => {
+    //         console.log(err);
+    //     })
+    // : null
     const showSnackbar = (innerText, time = 3000) => {
         var snackbar = document.getElementById(`snackbar`);
         snackbar.innerHTML = innerText;

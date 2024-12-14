@@ -7,49 +7,44 @@ import { setAccessToken } from '../config/redux/reducers/accessTokenSlice';
 const Navbar = () => {
     const userSelector = useSelector(state => state.user.user.currentUser)
     console.log(userSelector);
-    
+
     const tokenSelector = useSelector(state => state.token.accessToken)
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
     const currentPage = location.pathname;
     useEffect(() => {
-        if (tokenSelector) {
-            (async()=>{
-                const isTokenExpired = await axios.post("http://localhost:3000/api/v1/check",{
-                    token: tokenSelector,
-                }, {
-                    withCredentials: true,
-                });
-                console.log(isTokenExpired.data);
-            })()
-            return
-        }
-        const refreshUserData = async () => {
+        const validateOrRefreshToken = async () => {
+            if (tokenSelector) {
+                try {
+                    const { data: { isValid } } = await axios.post("http://localhost:3000/api/v1/check", {
+                        token: tokenSelector,
+                    }, {
+                        withCredentials: true,
+                    });
+                    if (isValid) {
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                }
+            }
+            // If token is invalid or missing, refresh user data
             try {
-                const response = await axios.get("http://localhost:3000/api/v1/refresh", {
+                const { data } = await axios.get("http://localhost:3000/api/v1/refresh", {
                     withCredentials: true,
                 });
-                const user = response.data.user
-                const token = response.data.accessToken
-                console.log(user);
-                dispatch(setAccessToken(
-                    {
-                        token: token
-                    }
-                ))
-                dispatch(addUser(
-                    {
-                        currentUser: user
-                    }
-                ))
-                console.log(response.data.accessToken);
+                const { user, accessToken } = data;
+                dispatch(setAccessToken({ token: accessToken }));
+                dispatch(addUser({ currentUser: user }));
             } catch (error) {
-                console.error(error);
+                console.error("Error refreshing user data:", error);
             }
         };
-        refreshUserData();
-    },[])
+    
+        validateOrRefreshToken();
+    }, [tokenSelector, dispatch]);
+    
     const logOutUser = async () => {
         try {
             await signOutUser()
