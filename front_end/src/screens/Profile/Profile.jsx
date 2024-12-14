@@ -3,10 +3,14 @@ import Greeting from '../../components/Greeting'
 import './Profile.css'
 import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../../config/redux/reducers/userSlice';
+import axios from 'axios';
 
 const Profile = () => {
     const dispatch = useDispatch();
     const userSelector = useSelector(state => state.user.user.currentUser);
+        const tokenSelector = useSelector(state => state.token.accessToken?.token)
+        console.log(tokenSelector);
+        
     const [newFullname, setNewFullName] = useState("");
     const [newUserName, setNewUserName] = useState("");
     const [currentPassword, setCurrentPassword] = useState("");
@@ -44,9 +48,19 @@ const Profile = () => {
         setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, time);
     }
     const passwordReset = async () => {
+        const accessToken = tokenSelector;
         try {
-            await sendPasswordResetEmail(auth, userSelector.email)
-            showSnackbar(`Password reset email has been sent to your registered email address at <br/> ${userSelector.email}!`)
+            const response = await axios.post("http://localhost:3000/api/v1/reset", {
+                data: {
+                    currentPassword : currentPassword,newPassword : newPassword
+                }
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+            console.log(response.data);
         } catch (error) {
             console.log(error);
         }
@@ -166,7 +180,7 @@ const Profile = () => {
             <dialog id="my_modal_2" className="modal">
                 <div className="modal-box bg-white">
                     <div className="gap-4 rounded-xl bg-white">
-                        <form method="dialog" className="modal-backdrop" onSubmit={editUser}>
+                        <form method="dialog" className="modal-backdrop" onSubmit={passwordReset}>
                             <input
                                 type="text"
                                 placeholder="Your current Password"
@@ -188,7 +202,7 @@ const Profile = () => {
                                     type="submit"
                                     className="btn text-white postBtn bg-[#7749f8] border-[#7749f8] btn-active hover:bg-[#561ef3] btn-neutral"
                                 >
-                                    Edit Blog
+                                    Update Password
                                 </button>
                             </div>
                         </form>
