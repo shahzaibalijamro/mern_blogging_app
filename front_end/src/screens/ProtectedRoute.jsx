@@ -8,7 +8,7 @@ const ProtectedRoute = ({ component }) => {
     const navigate = useNavigate();
     const tokenSelector = useSelector(state => state.token.accessToken)
     console.log(tokenSelector); // Add this to check if the token is present
-    const [userState, setUserState] = useState(true);
+    const [userState, setUserState] = useState(false);
     const dispatch = useDispatch()
     useEffect(() => {
         console.log("Protected route useEffect");
@@ -46,7 +46,7 @@ const ProtectedRoute = ({ component }) => {
                 setUserState(true)
             } catch (error) {
                 console.error("Error refreshing user data:", error);
-                // return navigate('/login')
+                return navigate('/login')
             }
         };
     
@@ -68,7 +68,7 @@ const ProtectedRoute = ({ component }) => {
     // }, [])
     return (
         <>
-            {userState ? component : null}
+            {userState ? component : <div className='h-screen w-full bg-white'></div>}
         </>
     )
 }
