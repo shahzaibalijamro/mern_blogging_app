@@ -179,7 +179,7 @@ const Profile = () => {
                         <form method="dialog" className="modal-backdrop" onSubmit={editUser}>
                             <input
                                 type="text"
-                                placeholder="Edit Blog Title"
+                                placeholder="Fullname"
                                 value={newFullname}
                                 onChange={(e) => setNewFullName(e.target.value)}
                                 className="input text-[#6c757d] input-bordered w-full"
@@ -187,10 +187,10 @@ const Profile = () => {
                             />
                             <input
                                 type="text"
-                                placeholder="Edit Blog Title"
+                                placeholder="Username"
                                 value={newUserName}
                                 onChange={(e) => setNewUserName(e.target.value)}
-                                className="input  mt-3 text-[#6c757d] input-bordered w-full"
+                                className="input mt-3 text-[#6c757d] input-bordered w-full"
                                 required
                             />
                             <div className="mt-3">
