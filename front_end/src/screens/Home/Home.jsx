@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../../config/redux/reducers/userSlice';
 import { addAllBlogs } from '../../config/redux/reducers/allBlogsSlice';
 import './style.css'
-import axios from 'axios';
+import axios from "../../config/api.config.js"
 import BlogCard from '../../components/BlogCard';
 
 const Home = () => {
@@ -36,7 +36,9 @@ const Home = () => {
 
   const getAllBlogs = async () => {
     try {
-      const response = await axios("http://localhost:3000/api/v1/allblogs");
+      const response = await axios("http://localhost:3000/api/v1/allblogs",{
+        credentials: "include",
+    });
       return response.data.allBlogs
     } catch (error) {
       console.log(error);
