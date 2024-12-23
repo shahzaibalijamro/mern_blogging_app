@@ -1,20 +1,23 @@
 import jwt from "jsonwebtoken";
 import User from "../models/users.models.js"
+import { generateAccessandRefreshTokens } from "../utils/tokens.utils.js";
 const verifyRequest = async (req, res, next) => {
     const accessToken = req.headers["authorization"]?.split(' ')[1];
     const currentRefreshToken = req.cookies?.refreshToken;
-    // if (!accessToken) return res.status(401).json({
-    //     message: "No access token recieved!"
-    // })
+    if (!accessToken) return res.status(401).json({
+        message: "No access token recieved!"
+    })
     try {
-        const decode = jwt.verify("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxMjM0NTYiLCJlbWFpbCI6IlNoYWh6YWliIiwiaWF0IjoxNzM0OTYxNzM0LCJleHAiOjE3MzQ5NjE3MzV9.aoWKHbWWuSyLbFh2fOW9qelimfUhq9NblIftLvaqLek", process.env.ACCESS_TOKEN_SECRET);
+        const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+        req.user = decoded;
+        next()
     } catch (error) {
         console.log(error.message || error);
-        // if (error.message === "jwt malformed") {
-        //     return res.status(400).json({
-        //         message: "The provided token is malformed!"
-        //     })
-        // }
+        if (error.message === "jwt malformed") {
+            return res.status(400).json({
+                message: "The provided token is malformed!"
+            })
+        }
         if (error.message === "jwt expired") {
             if (!currentRefreshToken) {
                 return res.status(401).json({
@@ -31,6 +34,14 @@ const verifyRequest = async (req, res, next) => {
                         message: "User not found!"
                     })
                 }
+                //generate new tokens if user found
+                const {accessToken,refreshToken} = generateAccessandRefreshTokens(user);
+                res
+                //Adding cookies
+                .cookie("refreshToken", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 })
+                req.tokens = { accessToken };
+                req.user = user;
+                next()
             } catch (error) {
                 console.log(error.message || error);
                 if (error.message === "jwt malformed") {
@@ -47,12 +58,7 @@ const verifyRequest = async (req, res, next) => {
                     message: "Something went wrong while authenticating!"
                 })
             }
-            // return res.status(400).json({
-            //     message: "The provided token is expired!"
-            // })
         }
-    } finally {
-        next()
     }
 }
 
