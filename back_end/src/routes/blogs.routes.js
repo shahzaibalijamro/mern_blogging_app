@@ -1,5 +1,6 @@
 import express from "express"
 import { addBlog, allBlogs, editBlog, singleUserBlogs, deleteBlog} from "../controllers/blogs.controllers.js";
+import { verifyRequest } from "../middlewares/auth.middelware.js";
 
 const blogRouter = express.Router();
 
@@ -7,7 +8,7 @@ const blogRouter = express.Router();
 blogRouter.post("/addblog", addBlog)
 
 //get all blogs
-blogRouter.get("/allblogs", allBlogs)
+blogRouter.get("/allblogs",verifyRequest, allBlogs)
 
 //edit blogs
 blogRouter.put("/editblog/:id", editBlog)
