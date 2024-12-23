@@ -157,6 +157,8 @@ const updateUserData = async (req, res) => {
 const refreshUser = async (req, res) => {
     try {
         const currentRefreshToken = req.cookies.refreshToken;
+        console.log(currentRefreshToken, "==> refresh");
+        
         if (!currentRefreshToken) {
             return res.status(401).json({ message: "Please login again!" });
         }
