@@ -11,8 +11,6 @@ const ProtectedRoute = ({ component }) => {
     const [userState, setUserState] = useState(false);
     const dispatch = useDispatch()
     useEffect(() => {
-        console.log("Protected route useEffect");
-        
         const validateOrRefreshToken = async () => {
             if (tokenSelector) {
                 console.log("token selector aahay");

@@ -36,9 +36,7 @@ const Home = () => {
 
   const getAllBlogs = async () => {
     try {
-      const response = await axios("http://localhost:3000/api/v1/allblogs",{
-        credentials: "include",
-    });
+      const response = await axios("http://localhost:3000/api/v1/allblogs");
       return response.data.allBlogs
     } catch (error) {
       console.log(error);

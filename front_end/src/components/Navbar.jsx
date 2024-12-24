@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addUser, emptyUser } from '../config/redux/reducers/userSlice';
-import axios from 'axios';
+import axios from "../config/api.config.js";
 import { setAccessToken } from '../config/redux/reducers/accessTokenSlice';
 const Navbar = () => {
     const userSelector = useSelector(state => state.user.user.currentUser)
@@ -15,30 +15,17 @@ const Navbar = () => {
     const currentPage = location.pathname;
     useEffect(() => {
         const validateOrRefreshToken = async () => {
-            if (tokenSelector) {
-                try {
-                    const { data: { isValid } } = await axios.post("http://localhost:3000/api/v1/check", {
-                        token: tokenSelector,
-                    }, {
-                        withCredentials: true,
-                    });
-                    if (isValid) {
-                        return;
-                    }
-                } catch (error) {
-                    console.error("Error:", error);
-                }
-            }
-            // If token is invalid or missing, refresh user data
+            if (!tokenSelector) {
+                // If token is invalid or missing, refresh user data
             try {
-                const { data } = await axios.get("http://localhost:3000/api/v1/refresh", {
-                    withCredentials: true,
-                });
-                const { user, accessToken } = data;
-                dispatch(setAccessToken({ token: accessToken }));
+                const {data} = await axios.post("http://localhost:3000/api/v1/auth");
+                console.log(data);
+                const { user, token } = data;
+                dispatch(setAccessToken({ token, }));
                 dispatch(addUser({ currentUser: user }));
             } catch (error) {
                 console.error("Error refreshing user data:", error);
+            }
             }
         };
     
