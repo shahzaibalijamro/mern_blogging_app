@@ -52,6 +52,8 @@ const isUserLoggedIn = async (req, res) => {
 const authenticateUser = async (req, res) => {
     const accessToken = req.headers["authorization"]?.split(" ")[1];
     const { refreshToken } = req.cookies;
+    console.log(accessToken,refreshToken);
+    
     if (!accessToken || !refreshToken) {
         return res.status(401).json({
             message: "Access token and refresh token are required! Please log in again."
@@ -60,9 +62,11 @@ const authenticateUser = async (req, res) => {
     try {
         const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET)
         return res.status(200).json({
-            decoded
+            decoded,
+            isValid: true
         })
     } catch (error) {
+        console.log(error);
         if (error.message === "jwt malformed") {
             return res.status(400).json({
                 message: "Refresh token is malformed!"
@@ -92,7 +96,8 @@ const authenticateUser = async (req, res) => {
                             fullName: user.fullName,
                             userName: user.userName,
                             profilePicture: user.profilePicture
-                        }
+                        },
+                        isValid: true
                     })
             } catch (error) {
                 return res.status(400).json({
