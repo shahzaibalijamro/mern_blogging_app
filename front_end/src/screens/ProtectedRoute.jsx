@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { setAccessToken } from '../config/redux/reducers/accessTokenSlice';
 import { addUser } from '../config/redux/reducers/userSlice';
-import axios from 'axios';
+import axios from '../config/api.config.js';
 const ProtectedRoute = ({ component }) => {
     const navigate = useNavigate();
     const tokenSelector = useSelector(state => state.token.accessToken)
@@ -11,44 +11,44 @@ const ProtectedRoute = ({ component }) => {
     const [userState, setUserState] = useState(false);
     const dispatch = useDispatch()
     useEffect(() => {
-        const validateOrRefreshToken = async () => {
+        const authenticateUser = async () => {
             if (tokenSelector) {
                 console.log("token selector aahay");
-                
                 try {
-                    const response = await axios.post("http://localhost:3000/api/v1/check", {
-                        token: tokenSelector,
-                    }, {
-                        withCredentials: true,
-                    });
-                    console.log(response);
-                    
-                    if (response.data.isValid) {
-                        console.log("isValid");
-                        
-                        setUserState(true)
-                        return;
-                    }
+                    const { data } = await axios.post(
+                        "/api/v1/protected",
+                        {},
+                        {
+                            headers: {
+                                "authorization": `Bearer ${tokenSelector.token}`,
+                            }
+                        }
+                    );
+                    console.log(data);
+                    // if (response.data.isValid) {
+                    //     setUserState(true)
+                    //     return;
+                    // }
                 } catch (error) {
                     console.error("Error:", error);
                 }
             }
-            // If token is invalid or missing, refresh user data
-            try {
-                const { data } = await axios.get("http://localhost:3000/api/v1/refresh", {
-                    withCredentials: true,
-                });
-                const { user, accessToken } = data;
-                dispatch(setAccessToken({ token: accessToken }));
-                dispatch(addUser({ currentUser: user }));
-                setUserState(true)
-            } catch (error) {
-                console.error("Error refreshing user data:", error);
-                return navigate('/login')
-            }
+            // // If token is invalid or missing, refresh user data
+            // try {
+            //     const { data } = await axios.get("http://localhost:3000/api/v1/refresh", {
+            //         withCredentials: true,
+            //     });
+            //     const { user, accessToken } = data;
+            //     dispatch(setAccessToken({ token: accessToken }));
+            //     dispatch(addUser({ currentUser: user }));
+            //     setUserState(true)
+            // } catch (error) {
+            //     console.error("Error refreshing user data:", error);
+            //     return navigate('/login')
+            // }
         };
-    
-        validateOrRefreshToken();
+
+        authenticateUser();
     }, [tokenSelector, dispatch]);
     // useEffect(() => {
     //     try {
