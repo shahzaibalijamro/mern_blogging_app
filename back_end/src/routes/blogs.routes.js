@@ -8,16 +8,16 @@ const blogRouter = express.Router();
 blogRouter.post("/addblog", addBlog)
 
 //get all blogs
-blogRouter.get("/allblogs",verifyRequest, allBlogs)
+blogRouter.get("/allblogs", allBlogs)
 
 //edit blogs
-blogRouter.put("/editblog/:id", editBlog)
+blogRouter.put("/editblog/:id",verifyRequest, editBlog)
 
 //get single blogs
 
 blogRouter.get("/singleuserblogs/:author", singleUserBlogs)
 
 //delete blog
-blogRouter.delete("/deleteblog/:id", deleteBlog)
+blogRouter.delete("/deleteblog/:id",verifyRequest, deleteBlog)
 
 export { blogRouter }
