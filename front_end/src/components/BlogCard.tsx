@@ -1,18 +1,14 @@
-import React from 'react'
-
+import React from 'react';
 const BlogCard = ({ item, index, goToSinglePage,page }) => {
     function formatMongoDBDate(timestamp) {
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
         const date = new Date(timestamp);
         const day = date.getDate();
         const month = months[date.getMonth()];
         const year = date.getFullYear();
-
         const suffix = (day % 10 === 1 && day !== 11) ? 'st' :
             (day % 10 === 2 && day !== 12) ? 'nd' :
                 (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
-
         return `${day}${suffix}-${month}-${year}`;
     }
     return (

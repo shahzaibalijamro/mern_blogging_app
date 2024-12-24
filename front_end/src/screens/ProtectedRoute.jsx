@@ -7,7 +7,7 @@ import axios from '../config/api.config.js';
 const ProtectedRoute = ({ component }) => {
     const navigate = useNavigate();
     const tokenSelector = useSelector(state => state.token.accessToken)
-    console.log(tokenSelector); // Add this to check if the token is present
+    console.log(tokenSelector);
     const [userState, setUserState] = useState(false);
     const dispatch = useDispatch()
     useEffect(() => {
@@ -25,12 +25,20 @@ const ProtectedRoute = ({ component }) => {
                         }
                     );
                     console.log(data);
-                    // if (response.data.isValid) {
-                    //     setUserState(true)
-                    //     return;
-                    // }
+                    const { token,user,isValid } = data;
+                    if (data.token) {
+                        dispatch(setAccessToken({ token,}));
+                        dispatch(addUser({ currentUser: user }));
+                        setUserState(true);
+                        return;
+                    }
+                    if (isValid) {
+                        setUserState(true)
+                        return;
+                    }
                 } catch (error) {
                     console.error("Error:", error);
+                    return navigate('/login')
                 }
             }
             // // If token is invalid or missing, refresh user data
@@ -50,20 +58,6 @@ const ProtectedRoute = ({ component }) => {
 
         authenticateUser();
     }, [tokenSelector, dispatch]);
-    // useEffect(() => {
-    //     try {
-    //         onAuthStateChanged(auth, async (user) => {
-    //             if (user) {
-    //                 setUserState(true)
-    //             } else {
-    //                 setUserState(false)
-    //                 navigate('/login')
-    //             }
-    //         });
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }, [])
     return (
         <>
             {userState ? component : <div className='h-screen w-full bg-white'></div>}

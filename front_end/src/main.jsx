@@ -11,6 +11,7 @@ import ProtectedRoute from './screens/ProtectedRoute.jsx'
 import { Provider } from 'react-redux'
 import { store } from './config/redux/store/store.js'
 import Profile from './screens/Profile/Profile.jsx'
+import SignOutRoutes from './screens/SignOutRoutes.jsx'
 
 const router = createBrowserRouter([
   {
@@ -23,11 +24,11 @@ const router = createBrowserRouter([
       },
       {
         path: 'login',
-        element: <Login/>,
+        element: <SignOutRoutes component={<Login/>} />,
       },
       {
         path: 'register',
-        element: <Register/>,
+        element: <SignOutRoutes component={<Register/>} />,
       },
       {
         path: 'dashboard',
