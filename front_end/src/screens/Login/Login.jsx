@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { addUser } from '../../config/redux/reducers/userSlice';
 import { useDispatch } from 'react-redux';
+import { setAccessToken } from '../../config/redux/reducers/accessTokenSlice';
 const Login = () => {
   const navigate = useNavigate();
   const usernameOrEmailRef = useRef();
@@ -12,16 +13,18 @@ const Login = () => {
   const signInUser = async event => {
     event.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/api/v1/login', {
+      const { data } = await axios.post('http://localhost:3000/api/v1/login', {
         userNameOrEmail: usernameOrEmailRef.current.value,
         password: passwordRef.current.value
-      }, {withCredentials: true,});
+      }, { withCredentials: true, });
+      const { user, tokens } = data;
+      dispatch(setAccessToken({ token: tokens.accessToken }));
+      localStorage.setItem('accessToken', tokens.accessToken);
       dispatch(addUser(
         {
-          currentUser: response.data.user
+          currentUser: user
         }
       ))
-      console.log(response.data.user);
       navigate('/')
     } catch (error) {
       console.log(error);

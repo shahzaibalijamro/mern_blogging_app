@@ -112,29 +112,6 @@ const loginUser = async function (req, res) {
 }
 
 
-const logoutUser = async (req, res) => {
-    try {
-        const { refreshToken } = req.cookies;
-        if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
-        const checkToken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
-        if (!checkToken) return res.status(401).json({
-            message: "Invalid or expired token. Please log in again."
-        })
-        const user = await User.findOneAndUpdate({ email: checkToken.email }, { $set: { refreshToken: '' } }, { new: true })
-        if (!user) return res.status(401).json({
-            message: "User does not exist"
-        })
-        res.clearCookie("refreshToken", { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 0, sameSite: 'strict', });
-        res.status(200).json({
-            message: "User logged out successfully"
-        })
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Something went wrong. Please try again later." });
-    }
-}
-
-
 //update user data
 
 const updateUserData = async (req, res) => {
@@ -147,77 +124,6 @@ const updateUserData = async (req, res) => {
     // userName,
     // fullName,
     // profilePicture } = req.body;
-
-
-}
-
-
-//send user data upon reload
-
-const refreshUser = async (req, res) => {
-    try {
-        const currentRefreshToken = req.cookies.refreshToken;
-        console.log(currentRefreshToken, "==> refresh");
-        
-        if (!currentRefreshToken) {
-            return res.status(401).json({ message: "Please login again!" });
-        }
-        // Decode and verify the token
-        const decoded = jwt.verify(currentRefreshToken, process.env.REFRESH_TOKEN_SECRET);
-        const decodedId = decoded._id;
-        const user = await User.findById(decodedId).select('-password -publishedBlogs -refreshToken');
-        if (!user) return res.status(400).json({
-            message: "User not found"
-        })
-        const { accessToken, refreshToken } = generateAccessandRefreshTokens(user)
-        res
-            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 })
-            .status(200)
-            .json({
-                message: "Token verified successfully!",
-                accessToken,
-                user
-            })
-    } catch (error) {
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({ message: "Refresh token has expired. Please login again!" });
-        }
-
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ message: "Invalid refresh token. Please login again!" });
-        }
-
-        console.error(error);
-        res.status(500).json({ message: "Internal server error!" });
-    }
-};
-
-const checkTokenExpiration = async (req, res) => {
-    console.log("hit");
-
-    const accessToken = req.body.token.token;
-    if (!accessToken) {
-        console.log("No accessToken found");
-
-        return res.status(400).json({
-            message: 'Token not provided',
-            isValid: false,
-        });
-    }
-    try {
-        const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-        console.log("valid");
-
-        res.status(200).json({
-            isValid: true
-        })
-    } catch (error) {
-        console.log("Invalid accessToken found");
-
-        return res.status(400).json({
-            isValid: false
-        })
-    }
 }
 
 
@@ -263,4 +169,4 @@ const resetPassword = async (req, res) => {
     }
 }
 
-export { registerUser, loginUser, logoutUser, updateUserData, refreshUser, checkTokenExpiration, resetPassword }
+export { registerUser, loginUser, updateUserData, resetPassword }

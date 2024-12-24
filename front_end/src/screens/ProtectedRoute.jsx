@@ -7,12 +7,14 @@ import axios from '../config/api.config.js';
 const ProtectedRoute = ({ component }) => {
     const navigate = useNavigate();
     const tokenSelector = useSelector(state => state.token.accessToken)
+    const accessToken = localStorage.getItem('accessToken');
     console.log(tokenSelector);
-    const [userState, setUserState] = useState(false);
+    const [userState, setUserState] = useState(null);
+    const [loading, setLoading] = useState(true);
     const dispatch = useDispatch()
     useEffect(() => {
         const authenticateUser = async () => {
-            if (tokenSelector) {
+            if (accessToken) {
                 console.log("token selector aahay");
                 try {
                     const { data } = await axios.post(
@@ -25,44 +27,43 @@ const ProtectedRoute = ({ component }) => {
                         }
                     );
                     console.log(data);
-                    const { token,user,isValid } = data;
+                    const { token, user, isValid } = data;
                     if (data.token) {
-                        dispatch(setAccessToken({ token,}));
+                        dispatch(setAccessToken({ token, }));
+                        localStorage.setItem('accessToken', token);
                         dispatch(addUser({ currentUser: user }));
                         setUserState(true);
+                        setLoading(false);
+
                         return;
                     }
                     if (isValid) {
                         setUserState(true)
+                        setLoading(false);
+
                         return;
                     }
                 } catch (error) {
                     console.error("Error:", error);
+                    setUserState(false)
                     return navigate('/login')
                 }
+            } else {
+                setUserState(false);
             }
-            // // If token is invalid or missing, refresh user data
-            // try {
-            //     const { data } = await axios.get("http://localhost:3000/api/v1/refresh", {
-            //         withCredentials: true,
-            //     });
-            //     const { user, accessToken } = data;
-            //     dispatch(setAccessToken({ token: accessToken }));
-            //     dispatch(addUser({ currentUser: user }));
-            //     setUserState(true)
-            // } catch (error) {
-            //     console.error("Error refreshing user data:", error);
-            //     return navigate('/login')
-            // }
+            setLoading(false);
         };
-
         authenticateUser();
-    }, [tokenSelector, dispatch]);
+    }, [navigate, dispatch]);
+    if (loading) {
+        return <div className="bg-white w-full h-screen">
+        </div>;
+    }
     return (
-        <>
-            {userState ? component : <div className='h-screen w-full bg-white'></div>}
-        </>
-    )
+        <div className="bg-white w-full h-screen">
+            {userState === true && component}
+        </div>
+    );
 }
 
 export default ProtectedRoute

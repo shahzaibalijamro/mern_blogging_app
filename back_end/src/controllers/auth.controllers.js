@@ -108,4 +108,23 @@ const authenticateUser = async (req, res) => {
     }
 }
 
-export { isUserLoggedIn,authenticateUser }
+//logout user
+const logoutUser = async (req, res) => {
+    try {
+        const { refreshToken } = req.cookies;
+        if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
+        const checkToken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
+        if (!checkToken) return res.status(401).json({
+            message: "Invalid or expired token!"
+        })
+        res.clearCookie("refreshToken", { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 0, sameSite: 'strict', });
+        res.status(200).json({
+            message: "User logged out successfully"
+        })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong. Please try again later." });
+    }
+}
+
+export { isUserLoggedIn,authenticateUser,logoutUser }

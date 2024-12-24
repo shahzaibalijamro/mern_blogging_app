@@ -82,6 +82,7 @@ const Profile = () => {
                     });
                     const { user, accessToken } = data;
                     dispatch(setAccessToken({ token: accessToken }));
+                    localStorage.setItem('accessToken', accessToken);
                     dispatch(addUser({ currentUser: user }));
                     // passwordReset()
                 } catch (error) {

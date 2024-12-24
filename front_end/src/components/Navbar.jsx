@@ -18,10 +18,11 @@ const Navbar = () => {
             if (!tokenSelector) {
                 // If token is invalid or missing, refresh user data
             try {
-                const {data} = await axios.post("http://localhost:3000/api/v1/auth");
+                const {data} = await axios.post("/api/v1/auth");
                 console.log(data);
                 const { user, token } = data;
                 dispatch(setAccessToken({ token, }));
+                localStorage.setItem('accessToken', token);
                 dispatch(addUser({ currentUser: user }));
             } catch (error) {
                 console.error("Error refreshing user data:", error);
@@ -34,10 +35,12 @@ const Navbar = () => {
     
     const logOutUser = async () => {
         try {
-            await signOutUser()
-            console.log("user Signout Successfully");
-            dispatch(emptyUser());
-            navigate('/login')
+            const {data} = await axios.post("/api/v1/logout");
+            console.log(data);
+            if (data.message === "User logged out successfully") {
+                dispatch(emptyUser());
+                navigate('/login')
+            }
         } catch (error) {
             console.log(error);
         }
@@ -49,7 +52,7 @@ const Navbar = () => {
                     <Link to={'/'} className="btn logo btn-ghost text-xl">Blogging App</Link>
                 </div>
                 <div className="flex-none navbarRight gap-2">
-                    <a className="btn btn-ghost nav-username text-xl">{userSelector.fullName}</a>
+                    <a className="btn btn-ghost nav-username text-xl">{userSelector.fullName || userSelector.fullname}</a>
                     <div className="dropdown items-center dropdown-end">
                         <div
                             tabIndex={0}
