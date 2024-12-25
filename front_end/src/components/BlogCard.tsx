@@ -42,9 +42,9 @@ const BlogCard = ({ item, index, goToSinglePage,page }) => {
                     <p
                         onClick={() => goToSinglePage(index)}
                         id="seeAll"
-                        className="text-[#7749f8] cursor-pointer font-semibold"
+                        className="text-[#7749f8] cursor-pointer w-fit font-semibold"
                     >
-                        <span>see all from this user</span>
+                        <span className='w-'>see all from this user</span>
                     </p>
                 </div>}
             </div>

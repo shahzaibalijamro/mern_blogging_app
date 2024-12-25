@@ -130,21 +130,12 @@ const updateUserData = async (req, res) => {
 const resetPassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body.data;
-        const authHeader = req.headers['authorization'];
+        const decoded = req.user;
         if (!currentPassword || !newPassword) {
             return res.status(400).json({
                 message: "Insufficient data recieved!"
             })
         }
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ message: 'Authorization header missing or invalid' });
-        }
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-        if (!decoded) return res.status(400).json({
-            message: "Invalid Access Token"
-        })
-        console.log(decoded);
         const user = await User.findOne({ email: decoded.email })
         if (!user) return res.status(400).json({
             message: "User does not exist!"
@@ -161,10 +152,14 @@ const resetPassword = async (req, res) => {
             message: "Password updated"
         })
     } catch (error) {
-        console.log(error);
-        return res.status(400).json({
-            message: "Something went wrong!",
-            error: error.message || error
+        console.log(error.message || error);
+        if (error.message === "Password does not meet the required criteria") {
+            return res.status(400).json({
+                message: "Password does not meet the required criteria!"
+            })
+        }
+        res.status(400).json({
+            message: "Something went wrong"
         })
     }
 }

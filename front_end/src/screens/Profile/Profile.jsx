@@ -3,7 +3,7 @@ import Greeting from '../../components/Greeting'
 import './Profile.css'
 import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../../config/redux/reducers/userSlice';
-import axios from 'axios';
+import axios from '../../config/api.config.js';
 import { setAccessToken } from '../../config/redux/reducers/accessTokenSlice';
 import useRemoveUser from '../../utils/app.utils';
 
@@ -41,8 +41,6 @@ const Profile = () => {
     };
     const showResetPasswordModal = () => {
         document.getElementById('my_modal_2').showModal();
-        setNewFullName(userSelector.fullName)
-        setNewUserName(userSelector.userName)
     };
     const showSnackbar = (innerText, time = 3000) => {
         var snackbar = document.getElementById(`snackbar`);
@@ -55,43 +53,29 @@ const Profile = () => {
         e.preventDefault()
         const accessToken = tokenSelector;
         try {
-            const response = await axios.post("http://localhost:3000/api/v1/reset", {
+            const { data } = await axios.post("/api/v1/reset", {
                 data: {
                     currentPassword: currentPassword, newPassword: newPassword
                 }
             }, {
                 headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
                 },
             })
-            console.log(response.data);
+            if (data) {
+                showSnackbar(`Password updated!`, 3000)
+                document.getElementById('my_modal_2').close();
+            }
         } catch (error) {
             console.log(error.response.data);
-            if (error.response.data?.error === "User validation failed: password: Password should be at least 8 characters!") {
-                return showSnackbar("Password should be at least 8 characters!", 2000)
+            if (error.response.data?.message === "Password does not meet the required criteria!") {
+                return showSnackbar(`Your password must be at least 8 characters long and include at least one letter, one number, and one special character (@, $, !, %, , ?, &).`, 5000)
             }
             if (error.response.data.message === "Incorrect Password") {
                 return showSnackbar("Incorrect Password!", 2000)
             }
-            if (error.response.data.message === "Invalid Access Token") {
-                // If token is invalid or missing, refresh user data
-                try {
-                    const { data } = await axios.get("http://localhost:3000/api/v1/refresh", {
-                        withCredentials: true,
-                    });
-                    const { user, accessToken } = data;
-                    dispatch(setAccessToken({ token: accessToken }));
-                    localStorage.setItem('accessToken', accessToken);
-                    dispatch(addUser({ currentUser: user }));
-                    // passwordReset()
-                } catch (error) {
-                    console.error("Error refreshing user data:", error);
-                    return removeUser()
-                }
-            }
             if (error.response.data.message = "User does not exist!") return removeUser()
-            console.log("Niche tak aagaya");
+            // console.log("Niche tak aagaya");
         }
     }
     const clickIcon = () => {
