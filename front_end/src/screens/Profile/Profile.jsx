@@ -11,44 +11,56 @@ const Profile = () => {
     const dispatch = useDispatch();
     const removeUser = useRemoveUser()
     const userSelector = useSelector(state => state.user.user.currentUser);
-    const tokenSelector = useSelector(state => state.token.accessToken.token)
+    const tokenSelector = useSelector(state => state.token.accessToken?.token)
     console.log(tokenSelector);
-
     const [newFullname, setNewFullName] = useState("");
     const [newUserName, setNewUserName] = useState("");
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
-
-    // !userSelector ? getData("users", auth.currentUser.uid)
-    //     .then(arr => {
-    //         dispatch(addUser(
-    //             {
-    //                 user: arr
-    //             }
-    //         ))
-    //     })
-    //     .catch(err => {
-    //         console.log(err);
-    //     })
-    // : null
-    const editUser = async () => {
-        console.log(123);
-    }
-    const showNameModal = () => {
+    const editUserNameModal = () => {
         document.getElementById('my_modal_1').showModal();
         setNewFullName(userSelector.fullName)
         setNewUserName(userSelector.userName)
     };
+    const editUserNameAndFullName = async (e) => {
+        e.preventDefault()
+        try {
+            const { data } = await axios.post("/api/v1/update",
+                {
+                    userName: newUserName,
+                    fullName: newFullname
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${tokenSelector}`
+                    }
+                })
+            const { user } = data;
+            console.log(data);
+            if (user) {
+                dispatch(addUser({ currentUser: user }));
+                showSnackbar(`Changes made!`, 3000);
+            }
+            if (data.accessToken) {
+                const token = data.accessToken;
+                console.log("token recieved from middleware");
+                dispatch(setAccessToken({ token, }));
+                localStorage.setItem('accessToken', token);
+            }
+        } catch (error) {
+            console.log(error);
+            if (error.response?.data?.taken) {
+                return showSnackbar(`This username is already taken, try another one!`, 3000);
+            }
+            if (error.response.data.message = "User does not exist!") return removeUser();
+            showSnackbar(`Something went wrong!`, 3000);
+        }finally{
+            document.getElementById('my_modal_1').close();
+        }
+    };
     const showResetPasswordModal = () => {
         document.getElementById('my_modal_2').showModal();
     };
-    const showSnackbar = (innerText, time = 3000) => {
-        var snackbar = document.getElementById(`snackbar`);
-        snackbar.innerHTML = innerText;
-        snackbar.style.zIndex = 10000
-        snackbar.className = "show";
-        setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, time);
-    }
     const passwordReset = async (e) => {
         e.preventDefault()
         const accessToken = tokenSelector;
@@ -64,7 +76,13 @@ const Profile = () => {
             })
             if (data) {
                 showSnackbar(`Password updated!`, 3000)
-                document.getElementById('my_modal_2').close();
+            }
+            if (data.accessToken) {
+                const token = data.accessToken;
+                console.log("token recieved from middleware");
+                
+                dispatch(setAccessToken({ token, }));
+                localStorage.setItem('accessToken', token);
             }
         } catch (error) {
             console.log(error.response.data);
@@ -76,7 +94,16 @@ const Profile = () => {
             }
             if (error.response.data.message = "User does not exist!") return removeUser()
             // console.log("Niche tak aagaya");
+        }finally{
+            document.getElementById('my_modal_2').close();
         }
+    }
+    const showSnackbar = (innerText, time = 3000) => {
+        var snackbar = document.getElementById(`snackbar`);
+        snackbar.innerHTML = innerText;
+        snackbar.style.zIndex = 10000
+        snackbar.className = "show";
+        setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, time);
     }
     const clickIcon = () => {
         const fileInput = document.querySelector('#fileInput');
@@ -85,74 +112,29 @@ const Profile = () => {
     const editPfp = async (event) => {
         showSnackbar(`Updating profile picture!`, 1500)
         const file = event.target.files[0];
+        const formData = new FormData();
+        formData.append("image", file);
         try {
-            const url = await uploadImage(file, userSelector.email)
-            const dpRef = doc(db, "users", userSelector.id);
-            await updateDoc(dpRef, {
-                pfp: url
-            })
-            dispatch(addUser(
-                {
-                    user: {
-                        ...userSelector,
-                        pfp: url
-                    }
+            const {data} = await axios.post("/api/v1/pfp",formData,{
+                headers: {
+                    'Authorization' : `Bearer ${tokenSelector}`,
+                    'Content-Type': 'multipart/form-data'
                 }
-            ))
-            showSnackbar(`Profile picture updated!`);
-            await getMyBlogs('pfp', url);
+            })
+            console.log(data);
+            // dispatch(addUser(
+            //     {
+            //         user: {
+            //             ...userSelector,
+            //             pfp: url
+            //         }
+            //     }
+            // ))
+            showSnackbar(`Profile picture updated!`,3000);
         } catch (error) {
             console.log(error)
         }
         event.target.value = ''
-    }
-    const editName = async () => {
-        const editedVal = prompt("Enter new name!");
-        if (!editedVal || editedVal.trim() === "") {
-            alert('Please enter a valid name!');
-            return;
-        }
-        try {
-            const nameRef = doc(db, "users", userSelector.id);
-            await updateDoc(nameRef, {
-                name: editedVal
-            })
-            console.log("Name successfully updated in Firestore!");
-            dispatch(addUser(
-                {
-                    user: {
-                        ...userSelector,
-                        name: editedVal
-                    }
-                }
-            ))
-            showSnackbar(`Name updated!`)
-            await getMyBlogs('name', editedVal);
-        } catch (err) {
-            console.error("Error updating document:", err);
-        }
-    };
-    const currentUserBlogs = [];
-    async function getMyBlogs(key, value) {
-        const usersRef = collection(db, "blogs");
-        const q = query(usersRef, where("uid", "==", userSelector.uid));
-        try {
-            const querySnapshot = await getDocs(q);
-            querySnapshot.forEach((doc) => {
-                currentUserBlogs.push({
-                    id: doc.id
-                })
-            });
-            for (let i = 0; i < currentUserBlogs.length; i++) {
-                const editedVal = value;
-                const userNameRef = doc(db, "blogs", currentUserBlogs[i].id);
-                await updateDoc(userNameRef, {
-                    [key]: editedVal
-                });
-            }
-        } catch (error) {
-            console.log(error);
-        }
     }
     return (
         <div style={{
@@ -161,7 +143,7 @@ const Profile = () => {
             <dialog id="my_modal_1" className="modal">
                 <div className="modal-box bg-white">
                     <div className="gap-4 rounded-xl bg-white">
-                        <form method="dialog" className="modal-backdrop" onSubmit={editUser}>
+                        <form method="dialog" className="modal-backdrop" onSubmit={editUserNameAndFullName}>
                             <input
                                 type="text"
                                 placeholder="Fullname"
@@ -246,7 +228,7 @@ const Profile = () => {
                                     @{userSelector.userName}
                                 </h1>
                                 <img
-                                    onClick={showNameModal}
+                                    onClick={editUserNameModal}
                                     id="editNameBtn"
                                     src="https://i.ibb.co/3fnjZcF/edit.png"
                                     alt="Edit"
