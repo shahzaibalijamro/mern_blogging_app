@@ -117,6 +117,7 @@ const loginUser = async function (req, res) {
 const updateFullNameOrUserName = async (req, res) => {
     const {userName,fullName} = req.body;
     const decoded = req.user;
+    const accessToken = req.tokens?.accessToken;
     try {
         if (!userName || !fullName) {
             return res.status(400).json({
@@ -124,25 +125,43 @@ const updateFullNameOrUserName = async (req, res) => {
             })
         }
         const user = await User.findById(
-            decoded._id || decoded.id)
+            decoded._id || decoded.id).select('-password -publishedBlogs');
         if (!user) {
             return res.status(404).json({
                 message: "User does not exist!"
             })
         }
-        user.fullName = fullName;
-        user.userName = userName.toLowerCase();
-        await user.save();
+        const lowerCaseUserName = userName.toLowerCase()
+        if (user.userName !== lowerCaseUserName) {
+            const isUserNameTaken = await User.findOne({userName: lowerCaseUserName});
+            if (isUserNameTaken) {
+                return res.status(400).json({
+                    message: "This username is already taken, try another one!",
+                    taken: true
+                })
+            }
+        }
+        if (user.fullName !== fullName || user.userName !== lowerCaseUserName) {
+            const update = await User.findByIdAndUpdate(
+                user._id,
+                {
+                    fullName,
+                    userName: lowerCaseUserName
+                },
+                {new:true}).select('-password -publishedBlogs');
+            return res.status(200).json({
+                message: "Username and fullname updated!",
+                user: update,
+                ...(accessToken && { accessToken })
+            })
+        }
         return res.status(200).json({
-            message: "Username and fullname updated!"
+            message: "Username and fullname are already up-to-date!",
+            user,
+            ...(accessToken && { accessToken })
         })
     } catch (error) {
         console.log(error.message || error);
-        if (error.code === 1100) {
-            return res.status(400).json({
-                message: "This username is already taken, try another one!"
-            })
-        }
         res.status(500).json({
             message: "Something went wrong!"
         })
@@ -154,6 +173,7 @@ const resetPassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body.data;
         const decoded = req.user;
+        const accessToken = req.tokens?.accessToken;
         if (!currentPassword || !newPassword) {
             return res.status(400).json({
                 message: "Insufficient data recieved!"
@@ -172,7 +192,8 @@ const resetPassword = async (req, res) => {
         await user.save()
         res.status(200).json({
             isPasswordCorrect: true,
-            message: "Password updated"
+            message: "Password updated",
+            ...(accessToken && {accessToken})
         })
     } catch (error) {
         console.log(error.message || error);
@@ -187,4 +208,49 @@ const resetPassword = async (req, res) => {
     }
 }
 
-export { registerUser, loginUser, updateFullNameOrUserName, resetPassword }
+
+const updateProfilePicture = async (req,res) => {
+    const decoded = req.user;
+    const accessToken = req.tokens?.accessToken;
+    console.log("decoded token on main",decoded);
+    console.log("accessToken token on main",accessToken);
+    if (!req.file) return res.status(400).json({
+        message: "No file found"
+    })
+    if (!decoded) return res.status(400).json({
+        message: "No token found!"
+    })
+    const image = req.file.path;
+    console.log(image);
+    try {
+        const doesUserExist = await User.findById(decoded._id || decoded.id);
+        if (!doesUserExist) {
+            res.status(404).json({
+                message: "User does not exist!"
+            })
+        }
+        const url = await uploadImageToCloudinary(image);
+        if (!url) {
+            return res.status(500).json({
+                message: "Could not upload the image!"
+            })
+        }
+        const updated = await User.findByIdAndUpdate(doesUserExist._id,{profilePicture: url},{new: true});
+        res.status(200).json({
+            message: "Profile Picture updated!",
+            updated: {
+                _id: updated._id,
+                userName: updated.userName,
+                fullName: updated.fullName,
+                profilePicture: updated.profilePicture,
+            }
+        })
+    } catch (error) {
+        console.log(error, "==> this");
+        return res.status(500).json({
+            message: "Something went wrong!"
+        })
+    }
+}
+
+export { registerUser, loginUser, updateFullNameOrUserName, resetPassword,updateProfilePicture }

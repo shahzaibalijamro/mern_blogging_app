@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
-
+import fs from "fs"
 // Upload an image
 const uploadImageToCloudinary = async (localPath) => {
     // Configuration
@@ -16,11 +16,19 @@ const uploadImageToCloudinary = async (localPath) => {
                 resource_type: "auto",
             }
             )
-        return uploadResult.url;
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
+            return (uploadResult.url);
+        } catch (error) {
+            console.log(error);
+            return null;
+        }finally{
+            fs.unlink(localPath, (err) => {
+                if (err) {
+                    console.error(`Error deleting temporary file at ${localPath}:`, err);
+                } else {
+                    console.log(`Temporary file at ${localPath} deleted successfully.`);
+                }
+            });
+        }
 }
 
 export { uploadImageToCloudinary }

@@ -4,12 +4,14 @@ import { generateAccessandRefreshTokens } from "../utils/tokens.utils.js";
 const verifyRequest = async (req, res, next) => {
     const accessToken = req.headers["authorization"]?.split(' ')[1];
     const currentRefreshToken = req.cookies?.refreshToken;
+    console.log("access token recieved on the first middelware", accessToken);
     if (!accessToken) return res.status(401).json({
         message: "No access token recieved!"
     })
     try {
         const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
         req.user = decoded;
+        console.log("decoded token recieved on the first middelware" ,decoded);
         next()
     } catch (error) {
         console.log(error.message || error);
