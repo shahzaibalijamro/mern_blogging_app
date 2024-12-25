@@ -22,7 +22,7 @@ const ProtectedRoute = ({ component }) => {
                         {},
                         {
                             headers: {
-                                "authorization": `Bearer ${tokenSelector.token}`,
+                                "authorization": `Bearer ${accessToken}`,
                             }
                         }
                     );

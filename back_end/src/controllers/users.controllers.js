@@ -114,16 +114,39 @@ const loginUser = async function (req, res) {
 
 //update user data
 
-const updateUserData = async (req, res) => {
-    console.log(req.cookies);
-    const { refreshToken } = req.cookies;
-    var decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    console.log(decoded);
-    res.send("done")
-    // const { 
-    // userName,
-    // fullName,
-    // profilePicture } = req.body;
+const updateFullNameOrUserName = async (req, res) => {
+    const {userName,fullName} = req.body;
+    const decoded = req.user;
+    try {
+        if (!userName || !fullName) {
+            return res.status(400).json({
+                message: "Username and fullname are required!"
+            })
+        }
+        const user = await User.findById(
+            decoded._id || decoded.id)
+        if (!user) {
+            return res.status(404).json({
+                message: "User does not exist!"
+            })
+        }
+        user.fullName = fullName;
+        user.userName = userName.toLowerCase();
+        await user.save();
+        return res.status(200).json({
+            message: "Username and fullname updated!"
+        })
+    } catch (error) {
+        console.log(error.message || error);
+        if (error.code === 1100) {
+            return res.status(400).json({
+                message: "This username is already taken, try another one!"
+            })
+        }
+        res.status(500).json({
+            message: "Something went wrong!"
+        })
+    }
 }
 
 
@@ -137,7 +160,7 @@ const resetPassword = async (req, res) => {
             })
         }
         const user = await User.findOne({ email: decoded.email })
-        if (!user) return res.status(400).json({
+        if (!user) return res.status(404).json({
             message: "User does not exist!"
         })
         const checkPassword = await bcrypt.compare(currentPassword,user.password);
@@ -164,4 +187,4 @@ const resetPassword = async (req, res) => {
     }
 }
 
-export { registerUser, loginUser, updateUserData, resetPassword }
+export { registerUser, loginUser, updateFullNameOrUserName, resetPassword }

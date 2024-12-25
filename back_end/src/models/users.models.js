@@ -4,8 +4,8 @@ const userSchema = new mongoose.Schema({
     userName: {
         type: String,
         required: [true, 'Username is required!'],
-        unique: true,
-        lowercase: true
+        unique: [true, 'Username must be unique!'],
+        lowercase: [true, 'Username must be lowercase!'],
     },
     fullName: {
         type: String,
