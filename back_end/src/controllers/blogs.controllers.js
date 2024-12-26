@@ -4,26 +4,40 @@ import UserModel from "../models/users.models.js";
 
 const addBlog = async (req, res) => {
     const user = req.user;
-    const token = req.tokens?.accessToken
+    const accesstoken = req.tokens?.accessToken
+    let session;
     try {
         const { title, description } = req.body;
         if (!title || !description) {
             return res.status(400).json({ message: "Blog title,description is required!" });
         }
-        const newblog = await blogModel.create({ title, description, author : user._id || user.id })
+        session = await mongoose.startSession();
+        session.startTransaction();
+        const newblog = await blogModel.create({ title, description, author : user._id || user.id },{session})
         const updateUser = await UserModel.findByIdAndUpdate(author, {
             $push: {publishedBlogs : newblog._id}
-        })
+        },{session});
+        if (!newblog || !updateUser) {
+            await session.abortTransaction();
+            return res.status(500).json({
+                message: "Could not add the blog!"
+            })
+        }
+        await session.commitTransaction()
         res.status(201).json({
             message: "Blog added",
             status: 201,
             blog: newblog,
+            ...(accesstoken && {accesstoken})
         })
     } catch (error) {
+        await session.abortTransaction();
         res.status(500).json({
             message: "An error occurred while adding the blog",
             error: error.message,
         })
+    }finally{
+        await session.endSession();
     }
 }
 
@@ -47,15 +61,17 @@ const allBlogs = async (req, res) => {
 
 //gets single blog
 const singleUserBlogs = async (req, res) => {
+    const user = req.user;
+    const accessToken = req.tokens?.accessToken;
     const { author } = req.params;
-    if (!author || !mongoose.Types.ObjectId.isValid(author)) {
+    if ((!author || !mongoose.Types.ObjectId.isValid(author)) && !user) {
         return res.status(400).json({
             message: "Invalid author ID",
             status: 400
         })
     }
     try {
-        const getSingleUserBlogs = await blogModel.find({author}).populate("author", "-password -refreshToken -publishedBlogs")
+        const getSingleUserBlogs = await blogModel.find({author: author || user.id || user._id}).populate("author", "-password -refreshToken -publishedBlogs")
         if (!getSingleUserBlogs) {
             return res.status(404).json({
                 message: "No blogs found",
@@ -64,12 +80,13 @@ const singleUserBlogs = async (req, res) => {
         }
         res.status(200).json({
             status: 200,
-            blogs: getSingleUserBlogs
+            blogs: getSingleUserBlogs,
+            ...(accessToken && {accessToken})
         })
     } catch (error) {
+        console.log(error.message || error);
         res.status(500).json({
-            message: "Could not fetch single user blogs",
-            error: error.message
+            message: "Could not fetch single user blogs"
         })
     }
 }

@@ -14,8 +14,10 @@ blogRouter.get("/allblogs", allBlogs)
 blogRouter.put("/editblog/:id",verifyRequest, editBlog)
 
 //get single blogs
-
 blogRouter.get("/singleuserblogs/:author", singleUserBlogs)
+
+//get my blogs
+blogRouter.get("/singleuserblogs", verifyRequest, singleUserBlogs)
 
 //delete blog
 blogRouter.delete("/deleteblog/:id",verifyRequest, deleteBlog)
