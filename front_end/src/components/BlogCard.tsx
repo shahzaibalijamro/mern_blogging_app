@@ -1,5 +1,5 @@
 import React from 'react';
-const BlogCard = ({ item, index, goToSinglePage, page,showModal,deleteBlog }) => {
+const BlogCard = ({ item, index, goToSinglePage, page,showModal,deleteBlog,pfp }) => {
     function formatMongoDBDate(timestamp:string) {
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const date = new Date(timestamp);
@@ -19,7 +19,7 @@ const BlogCard = ({ item, index, goToSinglePage, page,showModal,deleteBlog }) =>
                         <img
                             className="rounded-xl blogImg"
                             width="70px"
-                            src={item.author.profilePicture}
+                            src={pfp || item.author.profilePicture}
                             alt=""
                         />
                     </div>

@@ -256,9 +256,9 @@ const Dashboard = () => {
               <div className="text-center">
                 {myBlogs.length === 0 ? (<span className="loading loading-spinner loading-lg" />
                 ) : searchedBlogs.length > 0 ? searchedBlogs.map((item, index) => {
-                  return <BlogCard item={item} index={index} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"} />
+                  return <BlogCard item={item} index={index} pfp={userSelector.profilePicture} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"} />
                 }) : blogFound ? myBlogs.map((item, index) => {
-                  return <BlogCard item={item} index={index} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"} />
+                  return <BlogCard item={item} index={index} pfp={userSelector.profilePicture} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"} />
                 }) : <div>
                   <h1 className='text-black font-semibold'>No blog found</h1>
                 </div>}
