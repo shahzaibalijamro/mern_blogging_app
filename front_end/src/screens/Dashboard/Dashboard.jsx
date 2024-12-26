@@ -1,17 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react'
+import axios from "../../config/api.config.js"
 import './dashboard.css'
 import Greeting from '../../components/Greeting'
 import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../../config/redux/reducers/userSlice';
+import BlogCard from '../../components/BlogCard.tsx';
 const Dashboard = () => {
+  const userSelector = useSelector(state => state.user.user.currentUser);
+  const tokenSelector = useSelector(state => state.token.accessToken?.token)
   const [myIndex, setMyIndex] = useState(0);
+    const [blogFound, setBlogFound] = useState(true);
+  
   const [blogTitleToEdit, setBlogTitleToEdit] = useState('')
   const [blogDescriptionToEdit, setBlogDescriptionToEdit] = useState('')
   const [gotData, setGotData] = useState(false);
   const [searchedBlogs, setSearchedBlogs] = useState([]);
   const [myBlogs, setMyBlogs] = useState([]);
   const inputSearch = useRef();
-  const userSelector = useSelector(state => state.user.user[0])
   const blogTitle = useRef();
   const blogDescription = useRef();
   const dispatch = useDispatch();
@@ -23,39 +28,24 @@ const Dashboard = () => {
     setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, 3000);
   }
 
-
   useEffect(() => {
-    if (!userSelector) {
-      try {
-        (async () => {
-          await getData("users", auth.currentUser.uid)
-            .then(arr => {
-              dispatch(addUser(
-                {
-                  user: arr
-                }
-              ))
-            })
-        })()
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  }, []);
-
-
-  useEffect(() => {
-    (async () => {
-      await getData("blogs", auth.currentUser.uid)
-        .then(arr => {
-          setMyBlogs(arr)
-        })
-        .catch(err => {
+    if (tokenSelector) {
+      (async () => {
+        try {
+          const { data } = await axios(`/api/v1/singleuserblogs`,{
+            headers: {
+              'authorization': `Bearer ${tokenSelector}`
+            }
+          })
+          const { blogs } = data;
+          setMyBlogs(blogs)
+        } catch (error) {
           setGotData(true);
-          console.log(err);
-        })
-    })()
-  }, [])
+          console.log(error);
+        }
+      })()
+    }
+  }, [tokenSelector])
 
   const getCurrentTime = () => {
     const current = new Date();
@@ -109,11 +99,18 @@ const Dashboard = () => {
 
   const searchBlogs = () => {
     const searchValue = inputSearch.current.value.toLowerCase();
+    if (searchValue.length < 1) return setBlogFound(true)
     const filteredArr = myBlogs.filter(item => {
       return item.title.toLowerCase().includes(searchValue) ||
         item.description.toLowerCase().includes(searchValue);
     });
-    setSearchedBlogs(filteredArr)
+    if (filteredArr.length > 0) {
+      setSearchedBlogs(filteredArr)
+      setBlogFound(false)
+      return
+    };
+    setSearchedBlogs([])
+    setBlogFound(false)
   }
 
 
@@ -245,90 +242,14 @@ const Dashboard = () => {
               className="p-[1rem] mb-[20px] flex flex-col rounded-xl bg-white"
             >
               <div className="text-center">
-                {myBlogs.length > 0 && searchedBlogs.length > 0 ? searchedBlogs.map((item, index) => {
-                  return <div key={item.documentId}>
-                    <div className="p-[1rem] text-left flex flex-col rounded-xl bg-white">
-                      <div className="flex justify-start blogWrapper gap-4">
-                        <div>
-                          <img className="rounded-xl blogImg" width="70px" src={userSelector.pfp} alt="" />
-                        </div>
-                        <div className="flex flex-col justify-end">
-                          <div>
-                            <h1 className="text-black font-semibold text-lg">
-                              {item.title}
-                            </h1>
-                          </div>
-                          <div className="text-[#6C757D] mb-[3px] font-medium flex gap-2 ">
-                            <h1 className='blogTime'>
-                              {userSelector.name}
-                              <span>
-                                {" "}
-                                - {item.time}
-                              </span>
-                            </h1>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <p className="text-[#6C757D]">
-                          {item.description}
-                        </p>
-                      </div>
-                      <div className="mt-3 flex justify-start gap-3 items-center">
-                        <p onClick={() => showModal(index)} id="seeAll" className="text-[#7749f8] cursor-pointer font-semibold">
-                          <span>Edit</span>
-                        </p>
-                        <p onClick={() => deleteBlog(index, item.id)} id="seeAll" className="text-[#7749f8] cursor-pointer font-semibold">
-                          <span>Delete</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                }) : myBlogs.length > 0 ? myBlogs.map((item, index) => {
-                  return <div key={item.id}>
-                    <div className="p-[1rem] flex flex-col bg-white">
-                      <div className="flex justify-start blogWrapper gap-4">
-                        <div>
-                          <img
-                            className="rounded-xl blogImg"
-                            width="70px"
-                            src={userSelector.pfp}
-                            alt=""
-                          />
-                        </div>
-                        <div className="flex flex-col justify-end">
-                          <div>
-                            <h1 className="text-black text-left font-semibold text-lg">
-                              {item.title}
-                            </h1>
-                          </div>
-                          <div className="text-[#6C757D] mb-[3px] font-medium flex gap-2 ">
-                            <h1 className='blogTime'>
-                              {userSelector.name}
-                              <span>
-                                {" "}
-                                - {item.time}
-                              </span>
-                            </h1>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <p className="text-[#6C757D] text-left">
-                          {item.description}
-                        </p>
-                      </div>
-                      <div className="mt-3 flex justify-start gap-3 items-center">
-                        <p onClick={() => showModal(index)} id="seeAll" className="text-[#7749f8] cursor-pointer font-semibold">
-                          <span>Edit</span>
-                        </p>
-                        <p onClick={() => deleteBlog(index, item.id)} id="seeAll" className="text-[#7749f8] cursor-pointer font-semibold">
-                          <span>Delete</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                }) : gotData && myBlogs.length === 0 ? <h1 className='font-semibold my-6 text-xl text-black'>No Blogs Found...</h1> : <span className="loading my-6 loading-spinner loading-lg" />}
+              {myBlogs.length === 0 ? (<span className="loading loading-spinner loading-lg" />
+                ) : searchedBlogs.length > 0 ? searchedBlogs.map((item, index) => {
+                  return <BlogCard item={item} index={index} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"}/>
+                }) : blogFound ? myBlogs.map((item, index) => {
+                  return <BlogCard item={item} index={index} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"}/>
+                }) : <div>
+                  <h1 className='text-black font-semibold'>No blog found</h1>
+                </div>}
               </div>
             </div>
           </div>

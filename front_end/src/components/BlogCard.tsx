@@ -1,6 +1,6 @@
 import React from 'react';
-const BlogCard = ({ item, index, goToSinglePage,page }) => {
-    function formatMongoDBDate(timestamp) {
+const BlogCard = ({ item, index, goToSinglePage, page,showModal,deleteBlog }) => {
+    function formatMongoDBDate(timestamp:string) {
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const date = new Date(timestamp);
         const day = date.getDate();
@@ -45,6 +45,14 @@ const BlogCard = ({ item, index, goToSinglePage,page }) => {
                         className="text-[#7749f8] cursor-pointer w-fit font-semibold"
                     >
                         <span className='w-'>see all from this user</span>
+                    </p>
+                </div>}
+                {page === "dashboard" && <div className="mt-3 flex justify-start gap-3 items-center">
+                    <p onClick={() => showModal(index)} id="seeAll" className="text-[#7749f8] cursor-pointer font-semibold">
+                        <span>Edit</span>
+                    </p>
+                    <p onClick={() => deleteBlog(index, item.id)} id="seeAll" className="text-[#7749f8] cursor-pointer font-semibold">
+                        <span>Delete</span>
                     </p>
                 </div>}
             </div>

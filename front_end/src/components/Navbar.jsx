@@ -8,7 +8,9 @@ const Navbar = () => {
     const userSelector = useSelector(state => state.user.user.currentUser)
     console.log(userSelector);
 
-    const tokenSelector = useSelector(state => state.token.accessToken)
+    const tokenSelector = useSelector(state => state.token.accessToken?.token)
+    console.log(tokenSelector, "==> navbar");
+    
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
