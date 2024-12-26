@@ -4,19 +4,26 @@ import UserModel from "../models/users.models.js";
 
 const addBlog = async (req, res) => {
     const user = req.user;
-    const accesstoken = req.tokens?.accessToken
+    console.log(user);
+    const accesstoken = req.tokens?.accessToken;
     let session;
     try {
         const { title, description } = req.body;
         if (!title || !description) {
             return res.status(400).json({ message: "Blog title,description is required!" });
         }
+        console.log(title,description,user._id);
+        
         session = await mongoose.startSession();
         session.startTransaction();
-        const newblog = await blogModel.create({ title, description, author : user._id || user.id },{session})
-        const updateUser = await UserModel.findByIdAndUpdate(author, {
-            $push: {publishedBlogs : newblog._id}
-        },{session});
+        const newblog = await blogModel.create([{ title, description, author : user._id}],{session})
+        const updateUser = await UserModel.findByIdAndUpdate(
+            user._id,
+            { $push: { publishedBlogs: newblog[0]._id } },
+            { new: true, session }
+        )
+        .select("publishedBlogs")
+        .populate("publishedBlogs");
         if (!newblog || !updateUser) {
             await session.abortTransaction();
             return res.status(500).json({
@@ -26,12 +33,13 @@ const addBlog = async (req, res) => {
         await session.commitTransaction()
         res.status(201).json({
             message: "Blog added",
-            status: 201,
+            publishedBlogs: updateUser.publishedBlogs,
             blog: newblog,
             ...(accesstoken && {accesstoken})
         })
     } catch (error) {
         await session.abortTransaction();
+        console.log(error);
         res.status(500).json({
             message: "An error occurred while adding the blog",
             error: error.message,
