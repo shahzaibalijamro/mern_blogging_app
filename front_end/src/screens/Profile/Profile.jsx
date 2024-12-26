@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../../config/redux/reducers/userSlice';
 import axios from '../../config/api.config.js';
 import { setAccessToken } from '../../config/redux/reducers/accessTokenSlice';
-import useRemoveUser from '../../utils/app.utils';
+import useRemoveUser from '../../utils/app.utils.js';
 
 const Profile = () => {
     const dispatch = useDispatch();

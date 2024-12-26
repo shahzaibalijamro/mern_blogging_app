@@ -5,12 +5,13 @@ import Greeting from '../../components/Greeting'
 import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../../config/redux/reducers/userSlice';
 import BlogCard from '../../components/BlogCard.tsx';
+import useRemoveUser from '../../utils/app.utils.js';
 const Dashboard = () => {
   const userSelector = useSelector(state => state.user.user.currentUser);
   const tokenSelector = useSelector(state => state.token.accessToken?.token)
   const [myIndex, setMyIndex] = useState(0);
-    const [blogFound, setBlogFound] = useState(true);
-  
+  const [blogFound, setBlogFound] = useState(true);
+  const removeUser = useRemoveUser()
   const [blogTitleToEdit, setBlogTitleToEdit] = useState('')
   const [blogDescriptionToEdit, setBlogDescriptionToEdit] = useState('')
   const [gotData, setGotData] = useState(false);
@@ -22,17 +23,18 @@ const Dashboard = () => {
   const dispatch = useDispatch();
 
 
-  const showSnackbar = () => {
+  const showSnackbar = (innerHTML, duration) => {
     var snackbar = document.getElementById("snackbar");
     snackbar.className = "show";
-    setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, 3000);
+    snackbar.innerHTML = innerHTML;
+    setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, duration);
   }
 
   useEffect(() => {
     if (tokenSelector) {
       (async () => {
         try {
-          const { data } = await axios(`/api/v1/singleuserblogs`,{
+          const { data } = await axios(`/api/v1/singleuserblogs`, {
             headers: {
               'authorization': `Bearer ${tokenSelector}`
             }
@@ -71,27 +73,37 @@ const Dashboard = () => {
     event.preventDefault();
     const formattedTime = getCurrentTime()
     try {
-      await sendData(
-        {
-          title: blogTitle.current.value,
-          description: blogDescription.current.value,
-          time: formattedTime,
-          uid: userSelector.uid,
-          pfp: userSelector.pfp,
-          name: userSelector.name,
-          email: userSelector.email
-        }, "blogs")
-        .then((res) => {
-          console.log(res);
-        });
-      await getData("blogs", auth.currentUser.uid)
-        .then(arr => {
-          setMyBlogs(arr)
-        })
+      const { data } = await axios.post("/api/v1/addblog", { title: blogTitle.current.value, description: blogDescription.current.value }, {
+        headers: {
+          'authorization': `Bearer ${tokenSelector}`
+        }
+      })
+      console.log(data);
+      const { publishedBlogs } = data;
+      setMyBlogs(publishedBlogs);
+      showSnackbar("Blog posted!", 3000)
+      if (data.accessToken) {
+        const token = data.accessToken;
+        console.log("token recieved from middleware");
+        dispatch(setAccessToken({ token, }));
+        localStorage.setItem('accessToken', token);
+      }
     } catch (error) {
       console.log(error);
+      if (error.response.data.message === "No access token recieved!") {
+        return showSnackbar("No access Token recieved!", 3000);
+      }
+      if (error.response.data.message === "Refresh token not found, Please login again!") {
+        showSnackbar("Please Login again!", 3000)
+        removeUser()
+        return null;
+      }
+      if (error.response.data.message === "User not found!") {
+        showSnackbar("User not found!", 3000)
+        removeUser()
+        return null;
+      }
     }
-    showSnackbar()
     blogTitle.current.value = '';
     blogDescription.current.value = '';
   }
@@ -242,11 +254,11 @@ const Dashboard = () => {
               className="p-[1rem] mb-[20px] flex flex-col rounded-xl bg-white"
             >
               <div className="text-center">
-              {myBlogs.length === 0 ? (<span className="loading loading-spinner loading-lg" />
+                {myBlogs.length === 0 ? (<span className="loading loading-spinner loading-lg" />
                 ) : searchedBlogs.length > 0 ? searchedBlogs.map((item, index) => {
-                  return <BlogCard item={item} index={index} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"}/>
+                  return <BlogCard item={item} index={index} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"} />
                 }) : blogFound ? myBlogs.map((item, index) => {
-                  return <BlogCard item={item} index={index} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"}/>
+                  return <BlogCard item={item} index={index} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"} />
                 }) : <div>
                   <h1 className='text-black font-semibold'>No blog found</h1>
                 </div>}
