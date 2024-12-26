@@ -122,17 +122,19 @@ const Profile = () => {
                 }
             })
             console.log(data);
-            // dispatch(addUser(
-            //     {
-            //         user: {
-            //             ...userSelector,
-            //             pfp: url
-            //         }
-            //     }
-            // ))
+            const {user} = data;
+            dispatch(addUser({ currentUser: user }));
             showSnackbar(`Profile picture updated!`,3000);
+            if (data.accessToken) {
+                const token = data.accessToken;
+                console.log("token recieved from middleware");
+                dispatch(setAccessToken({ token, }));
+                localStorage.setItem('accessToken', token);
+            }
         } catch (error) {
             console.log(error)
+            if (error.response.data.message = "User does not exist!") return removeUser()
+            showSnackbar(`Could not update profile picture!`,3000);
         }
         event.target.value = ''
     }
