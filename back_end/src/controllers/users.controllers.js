@@ -235,15 +235,11 @@ const updateProfilePicture = async (req,res) => {
                 message: "Could not upload the image!"
             })
         }
-        const updated = await User.findByIdAndUpdate(doesUserExist._id,{profilePicture: url},{new: true});
+        const updated = await User.findByIdAndUpdate(doesUserExist._id,{profilePicture: url},{new: true}).select('-password -publishedBlogs')
         res.status(200).json({
             message: "Profile Picture updated!",
-            updated: {
-                _id: updated._id,
-                userName: updated.userName,
-                fullName: updated.fullName,
-                profilePicture: updated.profilePicture,
-            }
+            user: updated,
+            ...(accessToken && {accessToken})
         })
     } catch (error) {
         console.log(error, "==> this");

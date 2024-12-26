@@ -5,7 +5,7 @@ import { verifyRequest } from "../middlewares/auth.middelware.js";
 const blogRouter = express.Router();
 
 //add blog
-blogRouter.post("/addblog", addBlog)
+blogRouter.post("/addblog",verifyRequest,addBlog)
 
 //get all blogs
 blogRouter.get("/allblogs", allBlogs)

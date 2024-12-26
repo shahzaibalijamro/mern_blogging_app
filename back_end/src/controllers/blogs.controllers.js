@@ -3,22 +3,14 @@ import blogModel from "../models/blogs.models.js";
 import UserModel from "../models/users.models.js";
 
 const addBlog = async (req, res) => {
+    const user = req.user;
+    const token = req.tokens?.accessToken
     try {
-        const { title, description, author } = req.body;
+        const { title, description } = req.body;
         if (!title || !description) {
             return res.status(400).json({ message: "Blog title,description is required!" });
         }
-        if (!author || !mongoose.Types.ObjectId.isValid(author)) {
-            return res.status(400).json({
-                message: "Invalid author ID",
-                status: 400
-            })
-        }
-        const user = await UserModel.findById(author);
-        if (!user) return res.status(400).json({
-            message: "Author not found!"
-        })
-        const newblog = await blogModel.create({ title, description, author })
+        const newblog = await blogModel.create({ title, description, author : user._id || user.id })
         const updateUser = await UserModel.findByIdAndUpdate(author, {
             $push: {publishedBlogs : newblog._id}
         })
