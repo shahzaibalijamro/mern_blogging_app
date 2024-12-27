@@ -16,7 +16,7 @@ export const { setServerDown } = serverStatusSlice.actions;
 
 export const checkServerStatus = () => async (dispatch) => {
     try {
-        await axios.get("/api/health-check"); // Replace with your health check endpoint
+        await axios.get("/api/v1/health"); // Replace with your health check endpoint
         dispatch(setServerDown(false));
     } catch (error) {
         dispatch(setServerDown(true));
