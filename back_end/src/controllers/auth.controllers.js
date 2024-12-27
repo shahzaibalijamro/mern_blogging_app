@@ -5,6 +5,12 @@ import { generateAccessandRefreshTokens } from "../utils/tokens.utils.js";
 //generates access token on app start
 const isUserLoggedIn = async (req, res) => {
     const currentRefreshToken = req.cookies?.refreshToken;
+    console.log(currentRefreshToken);
+    if (!currentRefreshToken) {
+        return res.status(200).json({
+            message: "Refresh token not found!"
+        })
+    }
     try {
         const decoded = jwt.verify(currentRefreshToken, process.env.REFRESH_TOKEN_SECRET)
         //check if the user exists in DB
