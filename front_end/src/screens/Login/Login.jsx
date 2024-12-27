@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import './login.css'
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -7,11 +7,14 @@ import { useDispatch } from 'react-redux';
 import { setAccessToken } from '../../config/redux/reducers/accessTokenSlice';
 const Login = () => {
   const navigate = useNavigate();
+  const [isPasswordHidden,setIsPasswordHidden] = useState(true)
   const usernameOrEmailRef = useRef();
   const passwordRef = useRef();
   const dispatch = useDispatch();
   const signInUser = async event => {
     event.preventDefault();
+    const indicator = document.getElementById("h1");
+    indicator.classList.add("invisible");
     try {
       const { data } = await axios.post('http://localhost:3000/api/v1/login', {
         userNameOrEmail: usernameOrEmailRef.current.value,
@@ -28,6 +31,11 @@ const Login = () => {
       navigate('/')
     } catch (error) {
       console.log(error);
+      if (error.response.data.message === "Invalid credentials") {
+        const indicator = document.getElementById("h1");
+        indicator.innerHTML = "Invalid credentials!"
+        indicator.classList.remove("invisible");
+      }
     }
   }
   return (
@@ -47,21 +55,27 @@ const Login = () => {
               required
               ref={usernameOrEmailRef}
             />
-            <h1 className="text-lg font-medium ms-1 mt-5 mb-2 text-black">
-              Password
-            </h1>
+            <div className='flex justify-between items-center'>
+              <h1 className="text-lg font-medium ms-1 mt-5 mb-2 text-black">
+                Password
+              </h1>
+              <h1 onClick={()=> setIsPasswordHidden(!isPasswordHidden)}className="font-normal mt-5 mb-2 text-black cursor-pointer border-b border-black">
+                {isPasswordHidden ? "Show" : "Hide"}
+              </h1>
+            </div>
             <input
               id="passwordInput"
-              type="password"
+              type={isPasswordHidden ? "password" : "text"}
               placeholder="Enter your password"
               className="input bg-white input-bordered w-[100%]"
               required
               ref={passwordRef}
             />
+            <h1 id='h1' className='mt-2 text-center invisible text-[#ff0000] font-medium'>something</h1>
             <div className="text-center">
               <button
                 type="submit"
-                className="btn bg-[#7749f8] hover:bg-[#6128ff] mt-[1.5rem] text-white border-[#4c68ff]"
+                className="btn bg-[#7749f8] hover:bg-[#6128ff] mt-[0.9rem] text-white border-[#4c68ff]"
               >
                 Login
               </button>

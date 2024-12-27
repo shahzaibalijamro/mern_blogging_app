@@ -12,7 +12,7 @@ const Layout = () => {
       <ServerStatusChecker />
       {isServerDown ? (
         <div className='w-full h-screen flex justify-center items-center'>
-          <div className="main_wrapper">
+          <div className="main_wrapper flex-col">
             <div className="main">
               <div className="antenna">
                 <div className="antenna_shadow" />
@@ -74,8 +74,8 @@ const Layout = () => {
                 <div className="base3" />
               </div>
             </div>
+          <h1 className='text-center text-black mt-[20px] font-semibold px-4'>Our servers are currently unavailable. We’re working hard to resolve the issue. Please try again later. Thank you for your patience!</h1>
           </div>
-
         </div>
       ) : (
         <>

@@ -210,7 +210,7 @@ const Profile = () => {
             <Greeting />
             <div className="my-container">
                 <div className="p-[2rem] profile-wrapper w-full bg-white mt-5 gap-4rounded-xl gap-[1.25rem]">
-                    <div className="text-center mt-[3rem]">
+                    <div className="text-center">
                         {userSelector ? <>
                             <div className="max-w-[225px] mx-auto relative">
                                 <img className="w-full rounded-full mx-auto" id="pfp" src={userSelector.profilePicture} alt="" />
@@ -224,7 +224,7 @@ const Profile = () => {
                             </div>
                             <div className="flex flex-col justify-center mt-5 items-center">
                                 <h1 className="text-center font-semibold text-[27px] text-black">
-                                    {userSelector.fullName}
+                                    {userSelector.fullName || userSelector.fullname}
                                 </h1>
                                 <h1 className="text-center mt-2 font-semibold text-[22px] text-black">
                                     @{userSelector.userName}
