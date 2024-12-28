@@ -72,6 +72,9 @@ const singleUserBlogs = async (req, res) => {
     const user = req.user;
     const accessToken = req.tokens?.accessToken;
     const { author } = req.params;
+    const { sort } = req.params;
+    console.log(sort);
+    
     if ((!author || !mongoose.Types.ObjectId.isValid(author)) && !user) {
         return res.status(400).json({
             message: "Invalid author ID",
@@ -79,7 +82,7 @@ const singleUserBlogs = async (req, res) => {
         })
     }
     try {
-        const getSingleUserBlogs = await blogModel.find({author: author || user.id || user._id}).populate("author", "-password -refreshToken -publishedBlogs")
+        const getSingleUserBlogs = await blogModel.find({author: author || user.id || user._id}).populate("author", "-password -refreshToken -publishedBlogs").sort(sort === false ? {} : { createdAt: -1 });
         if (!getSingleUserBlogs) {
             return res.status(404).json({
                 message: "No blogs found",
