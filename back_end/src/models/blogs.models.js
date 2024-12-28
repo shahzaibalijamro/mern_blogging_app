@@ -21,4 +21,6 @@ const blogSchema = new mongoose.Schema(
     }
 );
 
+blogSchema.index({ createdAt: -1 })
+
 export default mongoose.model("blog", blogSchema, 'blogs');
