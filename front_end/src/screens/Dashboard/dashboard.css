@@ -3,6 +3,19 @@
     background-color: white !important;
 }
 
+.blog-description:focus {
+    outline: none !important;
+    border-color: #7749f8 !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 2px #7749f8 !important;
+}
+.blog-description:hover {
+    outline: none !important;
+    border-color: #7749f8 !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 2px #7749f8 !important;
+}
+
 .relative{
     position: relative !important;
 }

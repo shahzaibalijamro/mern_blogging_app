@@ -219,14 +219,14 @@ const Dashboard = () => {
             <form onSubmit={pushDataToFirestore}>
               <input
                 type="text"
-                placeholder="Placeholder"
-                className="input blog-title input-bordered w-full"
+                placeholder="Blog title goes here!"
+                className="input blog-title input-bordered text-[#4f4f4f] w-full"
                 required
                 ref={blogTitle}
               />
               <textarea
                 placeholder="What is in your mind?"
-                className="textarea mt-3 ps-[1rem] pt-[0.5rem] input-bordered blog-description text-[1rem] textarea-lg w-full"
+                className="textarea mt-3 ps-[1rem] pt-[0.5rem] input-bordered blog-description text-[#4f4f4f] text-[1rem] textarea-lg w-full"
                 required
                 ref={blogDescription}
               />
