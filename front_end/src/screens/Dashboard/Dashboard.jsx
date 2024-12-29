@@ -74,9 +74,8 @@ const Dashboard = () => {
   }
 
 
-  const pushDataToFirestore = async (event) => {
+  const addBlog = async (event) => {
     event.preventDefault();
-    const formattedTime = getCurrentTime()
     try {
       const { data } = await axios.post("/api/v1/addblog", { title: blogTitle.current.value, description: blogDescription.current.value }, {
         headers: {
@@ -133,16 +132,18 @@ const Dashboard = () => {
 
 
   const deleteBlog = async (i, id) => {
-    myBlogs.length === 1 ? setGotData(true) : null
+    console.log(i,id);
     try {
-      await deleteDocument(id, 'blogs')
-        .then(res => {
-          console.log(res);
-          myBlogs.splice(i, 1);
-          setMyBlogs([...myBlogs]);
-        })
+      const {data} = await axios.delete(`/api/v1/deleteblog/${id}`,{
+        headers: {
+          'Authorization' : `Bearer ${tokenSelector}`
+        }
+      })
+      console.log(data);
+      myBlogs.splice(i,1)
+      setMyBlogs([...myBlogs]);
     } catch (error) {
-      console.log(err);
+      console.log(error);
     }
   };
 
@@ -222,7 +223,7 @@ const Dashboard = () => {
       <div className="my-container">
         <div className="flex mt-5 gap-[1.25rem] flex-col">
           <div className="p-[2rem] blogPostWrapper gap-4 rounded-xl bg-white">
-            <form onSubmit={pushDataToFirestore}>
+            <form onSubmit={addBlog}>
               <input
                 type="text"
                 placeholder="Blog title goes here!"

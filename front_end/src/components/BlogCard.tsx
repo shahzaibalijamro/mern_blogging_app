@@ -51,7 +51,7 @@ const BlogCard = ({ item, index, goToSinglePage, page,showModal,deleteBlog,pfp }
                     <p onClick={() => showModal(index)} id="seeAll" className="text-[#7749f8] cursor-pointer font-semibold">
                         <span>Edit</span>
                     </p>
-                    <p onClick={() => deleteBlog(index, item.id)} id="seeAll" className="text-[#7749f8] cursor-pointer font-semibold">
+                    <p onClick={() => deleteBlog(index, item._id)} id="seeAll" className="text-[#7749f8] cursor-pointer font-semibold">
                         <span>Delete</span>
                     </p>
                 </div>}
