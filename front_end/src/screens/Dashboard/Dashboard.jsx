@@ -13,7 +13,7 @@ const Dashboard = () => {
   const [blogFound, setBlogFound] = useState(true);
   const removeUser = useRemoveUser()
   const [blogTitleToEdit, setBlogTitleToEdit] = useState('')
-  const [areBlogsSorted,setAreBlogsSorted] = useState(false);
+  const [sortByLatest,setSortByLatest] = useState(true);
   const [blogDescriptionToEdit, setBlogDescriptionToEdit] = useState('')
   const [gotData, setGotData] = useState(false);
   const [searchedBlogs, setSearchedBlogs] = useState([]);
@@ -31,22 +31,25 @@ const Dashboard = () => {
     setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, duration);
   }
 
+  const getMyBlogs = async (sort = true) => {
+    try {
+      const { data } = await axios(`/api/v1/myblogs/${sort}`, {
+        headers: {
+            'authorization': `Bearer ${tokenSelector}`
+        }
+    });        
+      const { blogs } = data;
+      console.log(data);
+      
+      setMyBlogs(blogs)
+    } catch (error) {
+      setGotData(true);
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     if (tokenSelector) {
-      const getMyBlogs = async () => {
-        try {
-          const { data } = await axios(`/api/v1/myblogs/${!areBlogsSorted ? false : true}`, {
-            headers: {
-                'authorization': `Bearer ${tokenSelector}`
-            }
-        });        
-          const { blogs } = data;
-          setMyBlogs(blogs)
-        } catch (error) {
-          setGotData(true);
-          console.log(error);
-        }
-      }
       getMyBlogs();
     }
   }, [tokenSelector])
@@ -83,6 +86,7 @@ const Dashboard = () => {
       console.log(data);
       const { publishedBlogs } = data;
       setMyBlogs(publishedBlogs);
+      setSortByLatest(true)
       showSnackbar("Blog posted!", 3000)
       if (data.accessToken) {
         const token = data.accessToken;
@@ -256,7 +260,10 @@ const Dashboard = () => {
               className="p-[1rem] mb-[20px] flex flex-col rounded-xl bg-white"
             >
               <div className='flex justify-end items-center'>
-              <h1 className='text-end font-medium border-b border-black text-black cursor-pointer'>Sort by latest</h1>
+              <h1 onClick={() => {
+                getMyBlogs(!sortByLatest)
+                setSortByLatest(!sortByLatest)
+                }} className='text-end font-medium border-b border-black text-black cursor-pointer'>{sortByLatest ? "Sort by earliest" : "Sort by latest"}</h1>
               </div>
               <div className="text-center">
                 {myBlogs.length === 0 ? (<span className="loading loading-spinner loading-lg" />
