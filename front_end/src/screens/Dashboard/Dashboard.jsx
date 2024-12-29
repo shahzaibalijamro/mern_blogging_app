@@ -13,7 +13,7 @@ const Dashboard = () => {
   const [blogFound, setBlogFound] = useState(true);
   const removeUser = useRemoveUser()
   const [blogTitleToEdit, setBlogTitleToEdit] = useState('')
-  const [sortByLatest,setSortByLatest] = useState(true);
+  const [sortByLatest, setSortByLatest] = useState(true);
   const [blogDescriptionToEdit, setBlogDescriptionToEdit] = useState('')
   const [gotData, setGotData] = useState(false);
   const [searchedBlogs, setSearchedBlogs] = useState([]);
@@ -24,7 +24,7 @@ const Dashboard = () => {
   const dispatch = useDispatch();
 
 
-  const showSnackbar = (innerHTML, duration) => {
+  const showSnackbar = (innerHTML, duration = 3000) => {
     var snackbar = document.getElementById("snackbar");
     snackbar.className = "show";
     snackbar.innerHTML = innerHTML;
@@ -35,12 +35,12 @@ const Dashboard = () => {
     try {
       const { data } = await axios(`/api/v1/myblogs/${sort}`, {
         headers: {
-            'authorization': `Bearer ${tokenSelector}`
+          'authorization': `Bearer ${tokenSelector}`
         }
-    });        
+      });
       const { blogs } = data;
       console.log(data);
-      
+
       setMyBlogs(blogs)
     } catch (error) {
       setGotData(true);
@@ -132,15 +132,16 @@ const Dashboard = () => {
 
 
   const deleteBlog = async (i, id) => {
-    console.log(i,id);
+    console.log(i, id);
     try {
-      const {data} = await axios.delete(`/api/v1/deleteblog/${id}`,{
+      const { data } = await axios.delete(`/api/v1/deleteblog/${id}`, {
         headers: {
-          'Authorization' : `Bearer ${tokenSelector}`
+          'Authorization': `Bearer ${tokenSelector}`
         }
       })
       console.log(data);
-      myBlogs.splice(i,1)
+      myBlogs.splice(i, 1)
+      setMyBlogs(myBlogs);
       setMyBlogs([...myBlogs]);
     } catch (error) {
       console.log(error);
@@ -150,27 +151,70 @@ const Dashboard = () => {
 
   const editBlog = async (event) => {
     event.preventDefault();
-    const formattedTime = `Edited at ${getCurrentTime()}`;
     const updatedBlogs = [...myBlogs];
     updatedBlogs[myIndex].title = blogTitleToEdit;
     updatedBlogs[myIndex].description = blogDescriptionToEdit;
-    updatedBlogs[myIndex].time = formattedTime;
-    setMyBlogs(updatedBlogs);
-    setBlogTitleToEdit('');
-    setBlogDescriptionToEdit('');
-    const updateRef = doc(db, "blogs", updatedBlogs[myIndex].id);
-    const updatedData = {
-      title: blogTitleToEdit,
-      description: blogDescriptionToEdit,
-      time: formattedTime,
-    };
     try {
-      await updateDoc(updateRef, updatedData);
+      const { data } = await axios.put(`/api/v1/editblog/${myBlogs[myIndex]._id}`, {
+        title: blogTitleToEdit,
+        description: blogDescriptionToEdit,
+      },{
+        headers:{
+          'Authorization' : `Bearer ${tokenSelector}`
+        }
+      })
+      console.log(data);
+      setMyBlogs(updatedBlogs);
       console.log("Document successfully updated!");
     } catch (error) {
-      console.error("Error updating document: ", error);
+      console.log(error);
+      const status = error.response?.status;
+    const message = error.response?.data?.message;
+
+    if (status === 400) {
+      if (message === "No access token recieved!") {
+        showSnackbar("Authentication failed: No access token received.");
+      } else if (message === "The provided token is malformed!") {
+        showSnackbar("Authentication failed: Invalid token format.");
+      } else if (message === "Invalid ID!") {
+        showSnackbar("Error: The blog ID is invalid.");
+      } else if (message === "Title and description not provided!") {
+        showSnackbar("Error: Both title and description must be provided.");
+      } else {
+        showSnackbar("Bad Request: " + message);
+      }
+    } else if (status === 401) {
+      if (message === "Refresh token not found, Please login again!") {
+        showSnackbar("Session expired: Please log in again.");
+        setTimeout(()=>{
+          removeUser()
+        },1000)
+      } else {
+        showSnackbar("Unauthorized: " + message);
+      }
+    } else if (status === 404) {
+      if (message === "User not found!") {
+        showSnackbar("Error: User not found in the system.");
+        setTimeout(()=>{
+          removeUser()
+        },1000)
+      } else if (message === "blog not found") {
+        showSnackbar("Error: The blog you are trying to update does not exist.");
+      } else {
+        showSnackbar("Resource not found: " + message);
+      }
+    } else if (status === 500) {
+      showSnackbar(
+        "Server Error: Something went wrong while updating the blog. Please try again later."
+      );
+    } else {
+      showSnackbar("An unexpected error occurred. Please try again later.");
     }
-    document.getElementById("my_modal_2").close();
+    }finally{
+      setBlogTitleToEdit('');
+      setBlogDescriptionToEdit('');
+      document.getElementById("my_modal_2").close();
+    }
   };
 
 
@@ -261,9 +305,9 @@ const Dashboard = () => {
               className="p-[1rem] mb-[20px] flex flex-col rounded-xl bg-white"
             >
               <div className='flex justify-end items-center'>
-              <h1 onClick={() => {
-                getMyBlogs(!sortByLatest)
-                setSortByLatest(!sortByLatest)
+                <h1 onClick={() => {
+                  getMyBlogs(!sortByLatest)
+                  setSortByLatest(!sortByLatest)
                 }} className='text-end font-medium border-b border-black text-black cursor-pointer'>{sortByLatest ? "Sort by earliest" : "Sort by latest"}</h1>
               </div>
               <div className="text-center">

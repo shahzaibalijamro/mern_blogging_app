@@ -30,7 +30,7 @@ const BlogCard = ({ item, index, goToSinglePage, page,showModal,deleteBlog,pfp }
                         <div className="text-[#6C757D] mb-[3px] font-medium flex gap-2">
                             <h1 className="blogTime">
                                 {item.name}
-                                <span> {formatMongoDBDate(item.createdAt)}</span>
+                                <span>{item.createdAt !== item.updatedAt ? `Last updated: ${formatMongoDBDate(item.updatedAt)}` : `Published on: ${formatMongoDBDate(item.createdAt)}`}</span>
                             </h1>
                         </div>
                     </div>
