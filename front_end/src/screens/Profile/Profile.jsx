@@ -138,6 +138,18 @@ const Profile = () => {
         }
         event.target.value = ''
     }
+    const deleteAccount = async()=>{
+        try {
+            const {data} = await axios.post("/api/v1/delete",{},{
+                headers: {
+                    'Authorization' : `Bearer ${tokenSelector}`
+                }
+            })
+            console.log(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
     return (
         <div style={{
             minHeight: '100vh'
@@ -237,13 +249,20 @@ const Profile = () => {
                                     className="w-5 cursor-pointer mt-1 h-5"
                                 />
                             </div>
-                            <div className="text-center">
+                            <div className="text-center flex flex-col justify-center w-max mx-auto items-center">
                                 <button
                                     onClick={showResetPasswordModal}
                                     id="reset-Btn"
                                     className="btn mt-5 text-white font-bold bg-[#7749f8] border-[#7749f8] btn-active hover:bg-[#561ef3] btn-neutral"
                                 >
                                     Reset Password?
+                                </button>
+                                <button
+                                    onClick={deleteAccount}
+                                    id="reset-Btn"
+                                    className="btn mt-3 text-white font-bold w-full bg-[#f44336] border-[#f44336] btn-active hover:bg-[#cf2b1f] btn-neutral"
+                                >
+                                    Delete account
                                 </button>
                             </div>
                             <input onChange={editPfp} type="file" id="fileInput" accept="image/*" className="hidden" />

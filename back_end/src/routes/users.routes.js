@@ -1,5 +1,5 @@
 import express from "express"
-import {  loginUser,registerUser,resetPassword, updateFullNameOrUserName, updateProfilePicture} from "../controllers/users.controllers.js";
+import {  deleteUser, loginUser,registerUser,resetPassword, updateFullNameOrUserName, updateProfilePicture} from "../controllers/users.controllers.js";
 import { upload } from "../middlewares/multer.middelware.js";
 import { verifyRequest } from "../middlewares/auth.middelware.js";
 const userRouter = express.Router();
@@ -9,6 +9,9 @@ userRouter.post("/register", upload.single("image"), registerUser)
 
 //login User
 userRouter.post("/login", loginUser)
+
+//delete User
+userRouter.post("/delete", verifyRequest, deleteUser)
 
 //update Username or Fullname
 userRouter.post("/update",verifyRequest, updateFullNameOrUserName)

@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Username is required!'],
         unique: [true, 'Username must be unique!'],
-        lowercase: [true, 'Username must be lowercase!'],
+        lowercase: true,
     },
     fullName: {
         type: String,
@@ -30,10 +30,6 @@ const userSchema = new mongoose.Schema({
     profilePicture: {
         type: String,
         required: [true, "Profile picture is required!"]
-    },
-    refreshToken: {
-        type: String,
-        required: [true, 'Refresh token is required!']
     },
     publishedBlogs: {
         type: [{

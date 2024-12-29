@@ -60,7 +60,11 @@ const registerUser = async (req, res) => {
                 }
             })
     } catch (error) {
+        console.log(error.message);
         //error checking
+        if (error.message === "Password does not meet the required criteria") {
+            return res.status(400).json({ message: "Password does not meet the required criteria!" });
+        }
         if (error.code === 11000) {
             return res.status(400).json({ message: "userName or email already exists." });
         }
@@ -115,7 +119,7 @@ const loginUser = async function (req, res) {
 //update user data
 
 const updateFullNameOrUserName = async (req, res) => {
-    const {userName,fullName} = req.body;
+    const { userName, fullName } = req.body;
     const decoded = req.user;
     const accessToken = req.tokens?.accessToken;
     try {
@@ -133,7 +137,7 @@ const updateFullNameOrUserName = async (req, res) => {
         }
         const lowerCaseUserName = userName.toLowerCase()
         if (user.userName !== lowerCaseUserName) {
-            const isUserNameTaken = await User.findOne({userName: lowerCaseUserName});
+            const isUserNameTaken = await User.findOne({ userName: lowerCaseUserName });
             if (isUserNameTaken) {
                 return res.status(400).json({
                     message: "This username is already taken, try another one!",
@@ -148,7 +152,7 @@ const updateFullNameOrUserName = async (req, res) => {
                     fullName,
                     userName: lowerCaseUserName
                 },
-                {new:true}).select('-password -publishedBlogs');
+                { new: true }).select('-password -publishedBlogs');
             return res.status(200).json({
                 message: "Username and fullname updated!",
                 user: update,
@@ -183,7 +187,7 @@ const resetPassword = async (req, res) => {
         if (!user) return res.status(404).json({
             message: "User does not exist!"
         })
-        const checkPassword = await bcrypt.compare(currentPassword,user.password);
+        const checkPassword = await bcrypt.compare(currentPassword, user.password);
         if (!checkPassword) return res.status(400).json({
             isPasswordCorrect: false,
             message: "Incorrect Password"
@@ -193,7 +197,7 @@ const resetPassword = async (req, res) => {
         res.status(200).json({
             isPasswordCorrect: true,
             message: "Password updated",
-            ...(accessToken && {accessToken})
+            ...(accessToken && { accessToken })
         })
     } catch (error) {
         console.log(error.message || error);
@@ -209,11 +213,11 @@ const resetPassword = async (req, res) => {
 }
 
 
-const updateProfilePicture = async (req,res) => {
+const updateProfilePicture = async (req, res) => {
     const decoded = req.user;
     const accessToken = req.tokens?.accessToken;
-    console.log("decoded token on main",decoded);
-    console.log("accessToken token on main",accessToken);
+    console.log("decoded token on main", decoded);
+    console.log("accessToken token on main", accessToken);
     if (!req.file) return res.status(400).json({
         message: "No file found"
     })
@@ -235,11 +239,11 @@ const updateProfilePicture = async (req,res) => {
                 message: "Could not upload the image!"
             })
         }
-        const updated = await User.findByIdAndUpdate(doesUserExist._id,{profilePicture: url},{new: true}).select('-password -publishedBlogs')
+        const updated = await User.findByIdAndUpdate(doesUserExist._id, { profilePicture: url }, { new: true }).select('-password -publishedBlogs')
         res.status(200).json({
             message: "Profile Picture updated!",
             user: updated,
-            ...(accessToken && {accessToken})
+            ...(accessToken && { accessToken })
         })
     } catch (error) {
         console.log(error, "==> this");
@@ -249,4 +253,29 @@ const updateProfilePicture = async (req,res) => {
     }
 }
 
-export { registerUser, loginUser, updateFullNameOrUserName, resetPassword,updateProfilePicture }
+const deleteUser = async (req, res) => {
+    const { refreshToken } = req.cookies;
+    try {
+        if (!refreshToken) {
+            return res.status(401).json({ message: "No refresh token provided" });
+        }
+        const decodedToken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        res.clearCookie("refreshToken", { 
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === 'production', 
+            maxAge: 0, 
+            sameSite: 'strict',
+        });
+        const user = await User.findByIdAndDelete(decodedToken._id);
+        if (!user) {
+            return res.status(404).json({ message: "User does not exist!" });
+        }
+        return res.status(200).json({ message: "User deleted!" });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Error occurred while deleting the user" });
+    }
+};
+
+
+export { registerUser, loginUser, updateFullNameOrUserName, resetPassword, updateProfilePicture, deleteUser }

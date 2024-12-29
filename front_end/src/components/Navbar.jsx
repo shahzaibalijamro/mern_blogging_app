@@ -3,10 +3,12 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addUser, emptyUser } from '../config/redux/reducers/userSlice';
 import axios from "../config/api.config.js";
+import useRemoveUser from '../utils/app.utils.js';
 import { setAccessToken } from '../config/redux/reducers/accessTokenSlice';
 const Navbar = () => {
     const userSelector = useSelector(state => state.user.user.currentUser)
     console.log(userSelector);
+    const removeUser = useRemoveUser()
 
     const tokenSelector = useSelector(state => state.token.accessToken?.token)
     console.log(tokenSelector, "==> navbar");
@@ -40,8 +42,7 @@ const Navbar = () => {
             const {data} = await axios.post("/api/v1/logout");
             console.log(data);
             if (data.message === "User logged out successfully") {
-                dispatch(emptyUser());
-                navigate('/login')
+                removeUser()
             }
         } catch (error) {
             console.log(error);
