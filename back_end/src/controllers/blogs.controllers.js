@@ -118,16 +118,15 @@ const deleteBlog = async (req, res) => {
         })
     }
     try {
-        const deletedblog = await blogModel.findByIdAndDelete(id)
-        if (!deletedblog) {
+        const deletedBlog = await blogModel.findByIdAndDelete(id)
+        if (!deletedBlog) {
             res.status(404).json({
                 message: "blog not found",
             })
         }
         res.status(200).json({
             message: "blog deleted successfully",
-            status: 200,
-            data: deletedblog
+            deletedBlog
         });
     } catch (error) {
         res.status(500).json({
