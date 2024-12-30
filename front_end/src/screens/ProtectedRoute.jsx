@@ -9,7 +9,6 @@ const ProtectedRoute = ({ component }) => {
     const navigate = useNavigate();
     const tokenSelector = useSelector(state => state.token.accessToken)
     const accessToken = localStorage.getItem('accessToken');
-    console.log(tokenSelector);
     const removeUser = useRemoveUser()
     const [userState, setUserState] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -17,7 +16,6 @@ const ProtectedRoute = ({ component }) => {
     useEffect(() => {
         const authenticateUser = async () => {
             if (accessToken) {
-                console.log("token selector aahay");
                 try {
                     const { data } = await axios.post(
                         "/api/v1/protected",
@@ -28,7 +26,6 @@ const ProtectedRoute = ({ component }) => {
                             }
                         }
                     );
-                    console.log(data);
                     const { token, user, isValid } = data;
                     if (data.token) {
                         dispatch(setAccessToken({ token, }));

@@ -23,9 +23,11 @@ const Profile = () => {
         setNewUserName(userSelector.userName)
     };
     const editUserNameAndFullName = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
+        const updateButton = document.getElementsByClassName("updateButton");
+        updateButton.innerHTML = "Saving ..."
         try {
-            const { data } = await axios.post("/api/v1/update",
+            const { data } = await axios.put("/api/v1/update",
                 {
                     userName: newUserName,
                     fullName: newFullname
@@ -35,6 +37,7 @@ const Profile = () => {
                         'Authorization': `Bearer ${tokenSelector}`
                     }
                 })
+            updateButton.innerHTML = "Saved"
             const { user } = data;
             if (user) {
                 dispatch(addUser({ currentUser: user }));
@@ -64,6 +67,7 @@ const Profile = () => {
             }
         } finally {
             document.getElementById('my_modal_1').close();
+            updateButton.innerHTML = "Save"
         }
     };
     const showResetPasswordModal = () => {
@@ -71,9 +75,11 @@ const Profile = () => {
     };
     const passwordReset = async (e) => {
         e.preventDefault()
+        const passwordButton = document.getElementsByClassName("passwordButton");
+        passwordButton.innerHTML = "Updating ..."
         const accessToken = tokenSelector;
         try {
-            const { data } = await axios.post("/api/v1/reset", {
+            const { data } = await axios.put("/api/v1/reset", {
                 data: {
                     currentPassword: currentPassword, newPassword: newPassword
                 }
@@ -82,6 +88,7 @@ const Profile = () => {
                     'Authorization': `Bearer ${accessToken}`
                 },
             })
+            passwordButton.innerHTML = "Updated"
             if (data) {
                 showSnackbar(`Password updated!`, 3000)
             }
@@ -113,6 +120,7 @@ const Profile = () => {
             if (error.response.data.message = "User does not exist!") return removeUser()
         } finally {
             document.getElementById('my_modal_2').close();
+            passwordButton.innerHTML = "Update Password"
         }
     }
     const showSnackbar = (innerText, time = 3000) => {
@@ -132,7 +140,7 @@ const Profile = () => {
         const formData = new FormData();
         formData.append("image", file);
         try {
-            const { data } = await axios.post("/api/v1/pfp", formData, {
+            const { data } = await axios.put("/api/v1/pfp", formData, {
                 headers: {
                     'Authorization': `Bearer 1213`,
                     'Content-Type': 'multipart/form-data'
@@ -164,13 +172,19 @@ const Profile = () => {
         event.target.value = ''
     }
     const deleteAccount = async () => {
+        const deleteButton = document.getElementsByClassName("deleteButton");
+        deleteButton.innerHTML = "Deleting..."
         try {
             const { data } = await axios.delete("/api/v1/delete", {
                 headers: {
                     'Authorization': `Bearer ${tokenSelector}`
                 }
             })
-            removeUser()
+            deleteButton.innerHTML = "Deleted"
+            showSnackbar("Sorry to see you go! Your account is deleted—hope to see you again!", 5000)
+            setTimeout(() => {
+                removeUser()
+            }, 3000);
         } catch (error) {
             console.log(error);
             const errorMessage = handleMiddlewareErrors(error);
@@ -187,6 +201,7 @@ const Profile = () => {
             }
         } finally {
             document.getElementById('my_modal_3').close();
+            deleteButton.innerHTML = "Yes, I am sure"
         }
     }
     return (
@@ -254,7 +269,7 @@ const Profile = () => {
                             <div className="mt-3 flex justify-between items-center">
                                 <button
                                     type="submit"
-                                    className="btn text-white postBtn bg-[#7749f8] border-[#7749f8] btn-active hover:bg-[#561ef3] btn-neutral"
+                                    className="btn passwordButton text-white postBtn bg-[#7749f8] border-[#7749f8] btn-active hover:bg-[#561ef3] btn-neutral"
                                 >
                                     Update Password
                                 </button>
@@ -284,7 +299,7 @@ const Profile = () => {
                         <button
                             onClick={deleteAccount}
                             id="reset-Btn"
-                            className="btn mt-3 text-white font-bold w-full bg-[#f44336] border-[#f44336] hover:border-[#cf2b1f] btn-active hover:bg-[#cf2b1f] btn-neutral"
+                            className="btn mt-3 deleteButton text-white font-bold w-full bg-[#f44336] border-[#f44336] hover:border-[#cf2b1f] btn-active hover:bg-[#cf2b1f] btn-neutral"
                         >
                             Yes, I am sure
                         </button>

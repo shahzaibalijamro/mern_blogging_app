@@ -23,9 +23,11 @@ const Register = () => {
   }
   const registerUser = async (event) => {
     event.preventDefault();
+    const registerButton = document.getElementById("registerButton")
     if (passwordRef.current.value !== repeatPasswordRef.current.value) {
       return showSnackbar("Passwords do not match!");
     }
+    registerButton.innerHTML = "Signing up ..."
     try {
       const file = fileRef.current.files[0];
       const formData = new FormData();
@@ -35,7 +37,8 @@ const Register = () => {
       formData.append("email", emailRef.current.value);
       formData.append("password", passwordRef.current.value);
       const { data } = await axios.post("/api/v1/register", formData);
-      showSnackbar(`User registered successfully. Welcome ${data.newUser.fullName}!`, 3000)
+      registerButton.innerHTML = "Signed up"
+      showSnackbar(`Welcome aboard ${data.newUser.fullName}!`, 3000)
       dispatch(setAccessToken({ token: data.tokens.accessToken }));
       dispatch(addUser({ currentUser: data.newUser }));
       localStorage.setItem('accessToken', data.tokens.accessToken);
@@ -67,6 +70,8 @@ const Register = () => {
       if (error.response.data?.message === "User validation failed: password: Password is required!") {
         return showSnackbar("Password is required!", 5000)
       }
+    }finally{
+      registerButton.innerHTML = "Sign up"
     }
   }
   return (
@@ -135,6 +140,7 @@ const Register = () => {
             </div>
             <div className="text-center">
               <button
+              id='registerButton'
                 className="btn bg-[#7749f8] mt-[1rem] text-white border-[#4c68ff] hover:bg-[#6128ff]"
                 type="submit"
               >

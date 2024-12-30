@@ -8,7 +8,6 @@ import { addUser } from '../config/redux/reducers/userSlice';
 const SignOutRoutes = ({ component }) => {
     const tokenSelector = useSelector(state => state.token.accessToken);
     const accessToken = localStorage.getItem('accessToken');
-    console.log(accessToken);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [userState, setUserState] = useState(null);
@@ -32,14 +31,10 @@ const SignOutRoutes = ({ component }) => {
                         dispatch(setAccessToken({ token }));
                         localStorage.setItem('accessToken', token);
                         dispatch(addUser({ currentUser: user }));
-                        console.log("if token");
-                        
                         navigate('/');
                         return;
                     }
                     if (isValid) {
-                        console.log("isValid");
-
                         navigate('/');
                         return;
                     }

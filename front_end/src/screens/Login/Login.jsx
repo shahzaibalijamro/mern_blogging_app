@@ -13,6 +13,8 @@ const Login = () => {
   const dispatch = useDispatch();
   const signInUser = async event => {
     event.preventDefault();
+    const loginButton = document.getElementById("loginButton")
+    loginButton.innerHTML = "Logging in ..."
     const indicator = document.getElementById("h1");
     indicator.classList.add("invisible");
     try {
@@ -20,6 +22,7 @@ const Login = () => {
         userNameOrEmail: usernameOrEmailRef.current.value,
         password: passwordRef.current.value
       }, { withCredentials: true, });
+    loginButton.innerHTML = "Logged in"
       const { user, tokens } = data;
       dispatch(setAccessToken({ token: tokens.accessToken }));
       localStorage.setItem('accessToken', tokens.accessToken);
@@ -36,6 +39,8 @@ const Login = () => {
         indicator.innerHTML = "Invalid credentials!"
         indicator.classList.remove("invisible");
       }
+    }finally{
+    loginButton.innerHTML = "Login"
     }
   }
   return (
@@ -74,6 +79,7 @@ const Login = () => {
             <h1 id='h1' className='mt-2 text-center invisible text-[#ff0000] font-medium'>something</h1>
             <div className="text-center">
               <button
+              id='loginButton'
                 type="submit"
                 className="btn bg-[#7749f8] hover:bg-[#6128ff] mt-[0.9rem] text-white border-[#4c68ff]"
               >
