@@ -142,7 +142,7 @@ const Profile = () => {
         try {
             const { data } = await axios.put("/api/v1/pfp", formData, {
                 headers: {
-                    'Authorization': `Bearer 1213`,
+                    'Authorization': `Bearer ${tokenSelector}`,
                     'Content-Type': 'multipart/form-data'
                 }
             })
