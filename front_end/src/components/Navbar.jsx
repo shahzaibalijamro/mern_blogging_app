@@ -7,12 +7,8 @@ import useRemoveUser from '../utils/app.utils.js';
 import { setAccessToken } from '../config/redux/reducers/accessTokenSlice';
 const Navbar = () => {
     const userSelector = useSelector(state => state.user.user.currentUser)
-    console.log(userSelector);
     const removeUser = useRemoveUser()
-
-    const tokenSelector = useSelector(state => state.token.accessToken?.token)
-    console.log(tokenSelector, "==> navbar");
-    
+    const tokenSelector = useSelector(state => state.token.accessToken?.token)    
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
@@ -20,10 +16,8 @@ const Navbar = () => {
     useEffect(() => {
         const validateOrRefreshToken = async () => {
             if (!tokenSelector) {
-                // If token is invalid or missing, refresh user data
             try {
                 const {data} = await axios.post("/api/v1/auth");
-                console.log(data);
                 const { user, token } = data;
                 dispatch(setAccessToken({ token, }));
                 localStorage.setItem('accessToken', token);
@@ -33,29 +27,40 @@ const Navbar = () => {
             }
             }
         };
-    
         validateOrRefreshToken();
     }, [tokenSelector, dispatch]);
     
+    const showSnackbar = (innerText, time = 3000) => {
+        var snackbar = document.getElementById(`snackbar`);
+        snackbar.innerHTML = innerText;
+        snackbar.style.zIndex = 10000
+        snackbar.className = "show";
+        setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, time);
+    }
+
     const logOutUser = async () => {
         try {
             const {data} = await axios.post("/api/v1/logout");
-            console.log(data);
             if (data.message === "User logged out successfully") {
                 removeUser()
             }
         } catch (error) {
             console.log(error);
+            const errorMessage = error.response?.data?.message;
+            if (errorMessage === "No refresh token provided!") {
+                showSnackbar("No refresh token provided!")
+            }
         }
     }
     return (
         <>
+            <div id="snackbar"></div>
             {userSelector ? <div className="px-5 navbar bg-[#7749f8] relative text-white">
                 <div className="flex-1">
                     <Link to={'/'} className="btn logo btn-ghost text-xl">Blogging App</Link>
                 </div>
                 <div className="flex-none navbarRight gap-2">
-                    <a className="btn btn-ghost nav-username text-xl">{userSelector.fullName || userSelector.fullname}</a>
+                {(userSelector.fullName || userSelector.fullname) && <a className="nav-username font-semibold text-xl">{userSelector.fullName || userSelector.fullname}</a>}
                     <div className="dropdown items-center dropdown-end">
                         <div
                             tabIndex={0}

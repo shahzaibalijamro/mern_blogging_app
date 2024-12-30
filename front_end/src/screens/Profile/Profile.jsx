@@ -6,13 +6,13 @@ import { addUser } from '../../config/redux/reducers/userSlice';
 import axios from '../../config/api.config.js';
 import { setAccessToken } from '../../config/redux/reducers/accessTokenSlice';
 import useRemoveUser from '../../utils/app.utils.js';
+import { handleMiddlewareErrors } from '../../utils/error.utils.js';
 
 const Profile = () => {
     const dispatch = useDispatch();
     const removeUser = useRemoveUser()
     const userSelector = useSelector(state => state.user.user.currentUser);
     const tokenSelector = useSelector(state => state.token.accessToken?.token)
-    console.log(tokenSelector);
     const [newFullname, setNewFullName] = useState("");
     const [newUserName, setNewUserName] = useState("");
     const [currentPassword, setCurrentPassword] = useState("");
@@ -36,24 +36,32 @@ const Profile = () => {
                     }
                 })
             const { user } = data;
-            console.log(data);
             if (user) {
                 dispatch(addUser({ currentUser: user }));
                 showSnackbar(`Changes made!`, 3000);
             }
             if (data.accessToken) {
                 const token = data.accessToken;
-                console.log("token recieved from middleware");
                 dispatch(setAccessToken({ token, }));
                 localStorage.setItem('accessToken', token);
             }
         } catch (error) {
             console.log(error);
+            const errorMessage = handleMiddlewareErrors(error);
+            showSnackbar(errorMessage, 3000);
+            if (errorMessage === "Session expired: Please log in again.") {
+                setTimeout(() => {
+                    removeUser()
+                }, 2000);
+            }
+            if (errorMessage === "User not found in the system.") {
+                setTimeout(() => {
+                    removeUser()
+                }, 2000);
+            }
             if (error.response?.data?.taken) {
                 return showSnackbar(`This username is already taken, try another one!`, 3000);
             }
-            if (error.response.data.message = "User does not exist!") return removeUser();
-            showSnackbar(`Something went wrong!`, 3000);
         } finally {
             document.getElementById('my_modal_1').close();
         }
@@ -79,13 +87,23 @@ const Profile = () => {
             }
             if (data.accessToken) {
                 const token = data.accessToken;
-                console.log("token recieved from middleware");
-
                 dispatch(setAccessToken({ token, }));
                 localStorage.setItem('accessToken', token);
             }
         } catch (error) {
-            console.log(error.response.data);
+            console.log(error.response?.data);
+            const errorMessage = handleMiddlewareErrors(error);
+            showSnackbar(errorMessage, 3000);
+            if (errorMessage === "Session expired: Please log in again.") {
+                setTimeout(() => {
+                    removeUser()
+                }, 2000);
+            }
+            if (errorMessage === "User not found in the system.") {
+                setTimeout(() => {
+                    removeUser()
+                }, 2000);
+            }
             if (error.response.data?.message === "Password does not meet the required criteria!") {
                 return showSnackbar(`Your password must be at least 8 characters long and include at least one letter, one number, and one special character (@, $, !, %, , ?, &).`, 5000)
             }
@@ -93,7 +111,6 @@ const Profile = () => {
                 return showSnackbar("Incorrect Password!", 2000)
             }
             if (error.response.data.message = "User does not exist!") return removeUser()
-            // console.log("Niche tak aagaya");
         } finally {
             document.getElementById('my_modal_2').close();
         }
@@ -117,41 +134,59 @@ const Profile = () => {
         try {
             const { data } = await axios.post("/api/v1/pfp", formData, {
                 headers: {
-                    'Authorization': `Bearer ${tokenSelector}`,
+                    'Authorization': `Bearer 1213`,
                     'Content-Type': 'multipart/form-data'
                 }
             })
-            console.log(data);
             const { user } = data;
             dispatch(addUser({ currentUser: user }));
             showSnackbar(`Profile picture updated!`, 3000);
             if (data.accessToken) {
                 const token = data.accessToken;
-                console.log("token recieved from middleware");
                 dispatch(setAccessToken({ token, }));
                 localStorage.setItem('accessToken', token);
             }
         } catch (error) {
             console.log(error)
-            if (error.response.data.message = "User does not exist!") return removeUser()
-            showSnackbar(`Could not update profile picture!`, 3000);
+            const errorMessage = handleMiddlewareErrors(error);
+            showSnackbar(errorMessage, 3000);
+            if (errorMessage === "Session expired: Please log in again.") {
+                setTimeout(() => {
+                    removeUser()
+                }, 2000);
+            }
+            if (errorMessage === "User not found in the system.") {
+                setTimeout(() => {
+                    removeUser()
+                }, 2000);
+            }
         }
         event.target.value = ''
     }
-    const openDeleteModal = async () => {
-        const deleteModal = document.getElementById("my_modal_3");
-        deleteModal.showModal()
-    }
     const deleteAccount = async () => {
         try {
-            const { data } = await axios.post("/api/v1/delete", {}, {
+            const { data } = await axios.delete("/api/v1/delete", {
                 headers: {
                     'Authorization': `Bearer ${tokenSelector}`
                 }
             })
-            console.log(data);
+            removeUser()
         } catch (error) {
             console.log(error);
+            const errorMessage = handleMiddlewareErrors(error);
+            showSnackbar(errorMessage, 3000);
+            if (errorMessage === "Session expired: Please log in again.") {
+                setTimeout(() => {
+                    removeUser()
+                }, 2000);
+            }
+            if (errorMessage === "User not found in the system.") {
+                setTimeout(() => {
+                    removeUser()
+                }, 2000);
+            }
+        } finally {
+            document.getElementById('my_modal_3').close();
         }
     }
     return (
@@ -159,7 +194,7 @@ const Profile = () => {
             minHeight: '100vh'
         }}>
             <dialog id="my_modal_1" className="modal">
-            <div className="modal-box bg-white relative">
+                <div className="modal-box bg-white relative">
                     <div className="gap-4 rounded-xl bg-white">
                         <form method="dialog" className="modal-backdrop" onSubmit={editUserNameAndFullName}>
                             <input
@@ -197,7 +232,7 @@ const Profile = () => {
                 </div>
             </dialog>
             <dialog id="my_modal_2" className="modal">
-            <div className="modal-box bg-white relative">
+                <div className="modal-box bg-white relative">
                     <div className="gap-4 rounded-xl bg-white">
                         <form onSubmit={passwordReset}>
                             <input
@@ -247,7 +282,7 @@ const Profile = () => {
                             Are you sure you want to delete your account? This action cannot be undone, and all your blogs will be permanently deleted.
                         </h1>
                         <button
-                            onClick={openDeleteModal}
+                            onClick={deleteAccount}
                             id="reset-Btn"
                             className="btn mt-3 text-white font-bold w-full bg-[#f44336] border-[#f44336] hover:border-[#cf2b1f] btn-active hover:bg-[#cf2b1f] btn-neutral"
                         >
@@ -297,7 +332,7 @@ const Profile = () => {
                                     Reset Password?
                                 </button>
                                 <button
-                                    onClick={openDeleteModal}
+                                    onClick={() => document.getElementById("my_modal_3").showModal()}
                                     id="reset-Btn"
                                     className="btn mt-3 text-white font-bold w-full bg-[#f44336] border-[#f44336] btn-active hover:bg-[#cf2b1f] btn-neutral"
                                 >

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import User from "../models/users.models.js"
+import User from "../models/users.models.js";
+import Blog from "../models/blogs.models.js"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { uploadImageToCloudinary } from "../utils/cloudinary.utils.js";
@@ -255,25 +256,42 @@ const updateProfilePicture = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     const { refreshToken } = req.cookies;
+    let session;
     try {
         if (!refreshToken) {
             return res.status(401).json({ message: "No refresh token provided" });
         }
         const decodedToken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        session = await mongoose.startSession();
+        session.startTransaction();
+        const [deleteUser,deleteUserBlogs] = await Promise.all([
+            User.findByIdAndDelete(decodedToken._id,{session}),
+            Blog.deleteMany({author: decodedToken._id},{session})
+        ])
+        if (!deleteUser) {
+            await session.abortTransaction();
+            return res.status(404).json({
+                message: "User not found"
+            })
+        }
+        await session.commitTransaction();
         res.clearCookie("refreshToken", { 
             httpOnly: true, 
             secure: process.env.NODE_ENV === 'production', 
             maxAge: 0, 
             sameSite: 'strict',
+            path: '/',
         });
-        const user = await User.findByIdAndDelete(decodedToken._id);
-        if (!user) {
-            return res.status(404).json({ message: "User does not exist!" });
-        }
         return res.status(200).json({ message: "User deleted!" });
     } catch (error) {
+        if(session) await session.abortTransaction()
+        if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+            return res.status(401).json({ message: "Invalid or expired token" });
+        }
         console.log(error);
         return res.status(500).json({ message: "Error occurred while deleting the user" });
+    }finally{
+        if(session) await session.endSession()
     }
 };
 

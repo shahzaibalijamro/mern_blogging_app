@@ -44,13 +44,10 @@ const Home = () => {
   }
 
   useEffect(() => {
-    console.log("home page useeffect");
-    
     (async () => {
       try {
         if (!blogSelector.length > 0) {
           const response = await getAllBlogs()
-          console.log(response);
           setAllBlogs(response)
           dispatch(addAllBlogs({
             response,
@@ -61,33 +58,7 @@ const Home = () => {
       }
     })()
     setAllBlogs(blogSelector)
-    // onAuthStateChanged(auth, async (user) => {
-    //   if (user) {
-    //     console.log(user);
-    //     if (!userSelector) {
-    //       await getUserData()
-    //     }
-    //   } else {
-    //     null
-    //   }
-    // })
   }, [])
-
-
-  async function getUserData() {
-    // await getData("users", auth.currentUser.uid)
-    //   .then(arr => {
-    //     dispatch(addUser(
-    //       {
-    //         user: arr
-    //       }
-    //     ))
-    //   })
-    //   .catch(err => {
-    //     console.log(err);
-    //   })
-    console.log("getUserData called");
-  }
 
 
   const goToSinglePage = (index) => {

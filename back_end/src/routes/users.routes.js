@@ -11,7 +11,7 @@ userRouter.post("/register", upload.single("image"), registerUser)
 userRouter.post("/login", loginUser)
 
 //delete User
-userRouter.post("/delete", verifyRequest, deleteUser)
+userRouter.delete("/delete", verifyRequest, deleteUser)
 
 //update Username or Fullname
 userRouter.post("/update",verifyRequest, updateFullNameOrUserName)

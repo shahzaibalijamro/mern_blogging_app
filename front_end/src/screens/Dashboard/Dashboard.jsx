@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../../config/redux/reducers/userSlice';
 import BlogCard from '../../components/BlogCard.tsx';
 import useRemoveUser from '../../utils/app.utils.js';
+import { handleMiddlewareErrors } from '../../utils/error.utils.js';
 const Dashboard = () => {
   const userSelector = useSelector(state => state.user.user.currentUser);
   const tokenSelector = useSelector(state => state.token.accessToken?.token);
@@ -62,13 +63,24 @@ const Dashboard = () => {
         }
       });
       const { blogs } = data;
-      console.log(data);
       setLoading(false)
       setMyBlogs(blogs)
     } catch (error) {
       setGotData(true);
-      console.log(error);
       setLoading(false)
+      console.log(error);
+      const errorMessage = handleMiddlewareErrors(error);
+      showSnackbar(errorMessage, 3000);
+      if (errorMessage === "Session expired: Please log in again.") {
+        setTimeout(() => {
+          removeUser()
+        }, 2000);
+      }
+      if (errorMessage === "User not found in the system.") {
+        setTimeout(() => {
+          removeUser()
+        }, 2000);
+      }
     }
   }
 
@@ -87,7 +99,6 @@ const Dashboard = () => {
           'authorization': `Bearer ${tokenSelector}`
         }
       })
-      console.log(data);
       const { publishedBlogs } = data;
       setMyBlogs(publishedBlogs);
       setSortByLatest(true)
@@ -96,26 +107,23 @@ const Dashboard = () => {
       showSnackbar("Blog posted!", 3000)
       if (data.accessToken) {
         const token = data.accessToken;
-        console.log("token recieved from middleware");
         dispatch(setAccessToken({ token, }));
         localStorage.setItem('accessToken', token);
       }
     } catch (error) {
       console.log(error);
       setLoading(false)
-
-      if (error.response.data.message === "No access token recieved!") {
-        return showSnackbar("No access Token recieved!", 3000);
+      const errorMessage = handleMiddlewareErrors(error);
+      showSnackbar(errorMessage, 3000);
+      if (errorMessage === "Session expired: Please log in again.") {
+        setTimeout(() => {
+          removeUser()
+        }, 2000);
       }
-      if (error.response.data.message === "Refresh token not found, Please login again!") {
-        showSnackbar("Please Login again!", 3000)
-        removeUser()
-        return null;
-      }
-      if (error.response.data.message === "User not found!") {
-        showSnackbar("User not found!", 3000)
-        removeUser()
-        return null;
+      if (errorMessage === "User not found in the system.") {
+        setTimeout(() => {
+          removeUser()
+        }, 2000);
       }
     }
     blogTitle.current.value = '';
@@ -141,7 +149,6 @@ const Dashboard = () => {
 
 
   const deleteBlog = async (i, id) => {
-    console.log(i, id);
     try {
       const { data } = await axios.delete(`/api/v1/deleteblog/${id}`, {
         headers: {
@@ -153,6 +160,18 @@ const Dashboard = () => {
       setMyBlogs([...myBlogs]);
     } catch (error) {
       console.log(error);
+      const errorMessage = handleMiddlewareErrors(error);
+      showSnackbar(errorMessage, 3000);
+      if (errorMessage === "Session expired: Please log in again.") {
+        setTimeout(() => {
+          removeUser()
+        }, 2000);
+      }
+      if (errorMessage === "User not found in the system.") {
+        setTimeout(() => {
+          removeUser()
+        }, 2000);
+      }
     }
   };
 
@@ -171,14 +190,12 @@ const Dashboard = () => {
           'Authorization': `Bearer ${tokenSelector}`
         }
       })
-      console.log(data);
       setMyBlogs(updatedBlogs);
       console.log("Document successfully updated!");
     } catch (error) {
       console.log(error);
       const status = error.response?.status;
       const message = error.response?.data?.message;
-
       if (status === 400) {
         if (message === "No access token recieved!") {
           showSnackbar("Authentication failed: No access token received.");

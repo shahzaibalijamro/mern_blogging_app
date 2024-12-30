@@ -27,7 +27,6 @@ const Register = () => {
       return showSnackbar("Passwords do not match!");
     }
     try {
-      console.log(fileRef.current.files[0]);
       const file = fileRef.current.files[0];
       const formData = new FormData();
       formData.append("image", file);
@@ -43,7 +42,6 @@ const Register = () => {
       setTimeout(() => {
         navigate('/')
       }, 3000)
-      console.log(data);
     } catch (error) {
       console.log(error);
       const errorMsg = error.response?.data?.message;

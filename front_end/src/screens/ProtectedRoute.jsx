@@ -4,11 +4,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { setAccessToken } from '../config/redux/reducers/accessTokenSlice';
 import { addUser } from '../config/redux/reducers/userSlice';
 import axios from '../config/api.config.js';
+import useRemoveUser from '../utils/app.utils.js';
 const ProtectedRoute = ({ component }) => {
     const navigate = useNavigate();
     const tokenSelector = useSelector(state => state.token.accessToken)
     const accessToken = localStorage.getItem('accessToken');
     console.log(tokenSelector);
+    const removeUser = useRemoveUser()
     const [userState, setUserState] = useState(null);
     const [loading, setLoading] = useState(true);
     const dispatch = useDispatch()
@@ -34,7 +36,6 @@ const ProtectedRoute = ({ component }) => {
                         dispatch(addUser({ currentUser: user }));
                         setUserState(true);
                         setLoading(false);
-
                         return;
                     }
                     if (isValid) {
@@ -46,7 +47,7 @@ const ProtectedRoute = ({ component }) => {
                 } catch (error) {
                     console.error("Error:", error);
                     setUserState(false)
-                    return navigate('/login')
+                    removeUser()
                 }
             } else {
                 setUserState(false);

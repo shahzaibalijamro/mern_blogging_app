@@ -118,7 +118,7 @@ const authenticateUser = async (req, res) => {
 const logoutUser = async (req, res) => {
     try {
         const { refreshToken } = req.cookies;
-        if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
+        if (!refreshToken) return res.status(401).json({ message: "No refresh token provided!" });
         const checkToken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
         if (!checkToken) return res.status(401).json({
             message: "Invalid or expired token!"
