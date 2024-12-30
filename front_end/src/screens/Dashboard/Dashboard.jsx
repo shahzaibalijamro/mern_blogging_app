@@ -8,7 +8,8 @@ import BlogCard from '../../components/BlogCard.tsx';
 import useRemoveUser from '../../utils/app.utils.js';
 const Dashboard = () => {
   const userSelector = useSelector(state => state.user.user.currentUser);
-  const tokenSelector = useSelector(state => state.token.accessToken?.token)
+  const tokenSelector = useSelector(state => state.token.accessToken?.token);
+  const [loading, setLoading] = useState(true);
   const [myIndex, setMyIndex] = useState(0);
   const [blogFound, setBlogFound] = useState(true);
   const removeUser = useRemoveUser()
@@ -23,6 +24,27 @@ const Dashboard = () => {
   const blogDescription = useRef();
   const dispatch = useDispatch();
 
+  const renderBlogs = () => {
+    if (loading) {
+      return <span className="loading loading-spinner loading-lg" />;
+    }
+    if (myBlogs.length === 0) {
+      return <h1 className="text-black font-semibold">No blog found</h1>;
+    }
+    const blogsToRender = searchedBlogs.length > 0 ? searchedBlogs : myBlogs;
+    return blogsToRender.map((item, index) => (
+      <BlogCard
+        key={index}
+        item={item}
+        index={index}
+        pfp={userSelector.profilePicture}
+        deleteBlog={deleteBlog}
+        showModal={showModal}
+        page="dashboard"
+      />
+    ));
+  };
+
 
   const showSnackbar = (innerHTML, duration = 3000) => {
     var snackbar = document.getElementById("snackbar");
@@ -32,6 +54,7 @@ const Dashboard = () => {
   }
 
   const getMyBlogs = async (sort = true) => {
+    setLoading(true)
     try {
       const { data } = await axios(`/api/v1/myblogs/${sort}`, {
         headers: {
@@ -40,11 +63,12 @@ const Dashboard = () => {
       });
       const { blogs } = data;
       console.log(data);
-
+      setLoading(false)
       setMyBlogs(blogs)
     } catch (error) {
       setGotData(true);
       console.log(error);
+      setLoading(false)
     }
   }
 
@@ -54,28 +78,9 @@ const Dashboard = () => {
     }
   }, [tokenSelector])
 
-  const getCurrentTime = () => {
-    const current = new Date();
-    const currentDate = current.getDate();
-    const currentMonth = current.getMonth();
-    const currentYear = current.getFullYear();
-    const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
-    const correctedDate = (currentDate === 1 ? currentDate + 'st' :
-      currentDate === 2 ? currentDate + 'nd' :
-        currentDate === 3 ? currentDate + 'rd' :
-          currentDate === 21 ? currentDate + 'st' :
-            currentDate === 22 ? currentDate + 'nd' :
-              currentDate === 23 ? currentDate + 'rd' :
-                currentDate + 'th');
-    return `${months[currentMonth]} ${correctedDate}, ${currentYear}`
-  }
-
-
   const addBlog = async (event) => {
     event.preventDefault();
+    setLoading(true)
     try {
       const { data } = await axios.post("/api/v1/addblog", { title: blogTitle.current.value, description: blogDescription.current.value }, {
         headers: {
@@ -86,6 +91,8 @@ const Dashboard = () => {
       const { publishedBlogs } = data;
       setMyBlogs(publishedBlogs);
       setSortByLatest(true)
+      setLoading(false)
+
       showSnackbar("Blog posted!", 3000)
       if (data.accessToken) {
         const token = data.accessToken;
@@ -95,6 +102,8 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.log(error);
+      setLoading(false)
+
       if (error.response.data.message === "No access token recieved!") {
         return showSnackbar("No access Token recieved!", 3000);
       }
@@ -139,9 +148,8 @@ const Dashboard = () => {
           'Authorization': `Bearer ${tokenSelector}`
         }
       })
-      console.log(data);
+      showSnackbar("Blog deleted!", 3000)
       myBlogs.splice(i, 1)
-      setMyBlogs(myBlogs);
       setMyBlogs([...myBlogs]);
     } catch (error) {
       console.log(error);
@@ -158,9 +166,9 @@ const Dashboard = () => {
       const { data } = await axios.put(`/api/v1/editblog/${myBlogs[myIndex]._id}`, {
         title: blogTitleToEdit,
         description: blogDescriptionToEdit,
-      },{
-        headers:{
-          'Authorization' : `Bearer ${tokenSelector}`
+      }, {
+        headers: {
+          'Authorization': `Bearer ${tokenSelector}`
         }
       })
       console.log(data);
@@ -169,48 +177,48 @@ const Dashboard = () => {
     } catch (error) {
       console.log(error);
       const status = error.response?.status;
-    const message = error.response?.data?.message;
+      const message = error.response?.data?.message;
 
-    if (status === 400) {
-      if (message === "No access token recieved!") {
-        showSnackbar("Authentication failed: No access token received.");
-      } else if (message === "The provided token is malformed!") {
-        showSnackbar("Authentication failed: Invalid token format.");
-      } else if (message === "Invalid ID!") {
-        showSnackbar("Error: The blog ID is invalid.");
-      } else if (message === "Title and description not provided!") {
-        showSnackbar("Error: Both title and description must be provided.");
+      if (status === 400) {
+        if (message === "No access token recieved!") {
+          showSnackbar("Authentication failed: No access token received.");
+        } else if (message === "The provided token is malformed!") {
+          showSnackbar("Authentication failed: Invalid token format.");
+        } else if (message === "Invalid ID!") {
+          showSnackbar("Error: The blog ID is invalid.");
+        } else if (message === "Title and description not provided!") {
+          showSnackbar("Error: Both title and description must be provided.");
+        } else {
+          showSnackbar("Bad Request: " + message);
+        }
+      } else if (status === 401) {
+        if (message === "Refresh token not found, Please login again!") {
+          showSnackbar("Session expired: Please log in again.");
+          setTimeout(() => {
+            removeUser()
+          }, 1000)
+        } else {
+          showSnackbar("Unauthorized: " + message);
+        }
+      } else if (status === 404) {
+        if (message === "User not found!") {
+          showSnackbar("Error: User not found in the system.");
+          setTimeout(() => {
+            removeUser()
+          }, 1000)
+        } else if (message === "blog not found") {
+          showSnackbar("Error: The blog you are trying to update does not exist.");
+        } else {
+          showSnackbar("Resource not found: " + message);
+        }
+      } else if (status === 500) {
+        showSnackbar(
+          "Server Error: Something went wrong while updating the blog. Please try again later."
+        );
       } else {
-        showSnackbar("Bad Request: " + message);
+        showSnackbar("An unexpected error occurred. Please try again later.");
       }
-    } else if (status === 401) {
-      if (message === "Refresh token not found, Please login again!") {
-        showSnackbar("Session expired: Please log in again.");
-        setTimeout(()=>{
-          removeUser()
-        },1000)
-      } else {
-        showSnackbar("Unauthorized: " + message);
-      }
-    } else if (status === 404) {
-      if (message === "User not found!") {
-        showSnackbar("Error: User not found in the system.");
-        setTimeout(()=>{
-          removeUser()
-        },1000)
-      } else if (message === "blog not found") {
-        showSnackbar("Error: The blog you are trying to update does not exist.");
-      } else {
-        showSnackbar("Resource not found: " + message);
-      }
-    } else if (status === 500) {
-      showSnackbar(
-        "Server Error: Something went wrong while updating the blog. Please try again later."
-      );
-    } else {
-      showSnackbar("An unexpected error occurred. Please try again later.");
-    }
-    }finally{
+    } finally {
       setBlogTitleToEdit('');
       setBlogDescriptionToEdit('');
       document.getElementById("my_modal_2").close();
@@ -226,6 +234,10 @@ const Dashboard = () => {
     document.getElementById('my_modal_2').showModal();
   };
 
+  const handleSorting = () => {
+    getMyBlogs(!sortByLatest)
+    setSortByLatest(!sortByLatest)
+  }
 
   return (
     <div style={{
@@ -233,7 +245,13 @@ const Dashboard = () => {
     }} className='bg-[#f8f9fa]'>
       <div id="snackbar">Blog posted!</div>
       <dialog id="my_modal_2" className="modal">
-        <div className="modal-box bg-white">
+        <div className="modal-box bg-white relative">
+          <h1
+            onClick={() => document.getElementById("my_modal_2").close()}
+            className="absolute cursor-pointer top-0 right-3 text-black font-bold text-[1.5rem]"
+          >
+            ×
+          </h1>
           <div className="gap-4 rounded-xl bg-white">
             <form method="dialog" className="modal-backdrop" onSubmit={editBlog}>
               <input
@@ -305,20 +323,10 @@ const Dashboard = () => {
               className="p-[1rem] mb-[20px] flex flex-col rounded-xl bg-white"
             >
               <div className='flex justify-end items-center'>
-                <h1 onClick={() => {
-                  getMyBlogs(!sortByLatest)
-                  setSortByLatest(!sortByLatest)
-                }} className='text-end font-medium border-b border-black text-black cursor-pointer'>{sortByLatest ? "Sort by earliest" : "Sort by latest"}</h1>
+                <h1 onClick={handleSorting} className='text-end font-medium border-b border-black text-black cursor-pointer'>{sortByLatest ? "Sort by earliest" : "Sort by latest"}</h1>
               </div>
               <div className="text-center">
-                {myBlogs.length === 0 ? (<span className="loading loading-spinner loading-lg" />
-                ) : searchedBlogs.length > 0 ? searchedBlogs.map((item, index) => {
-                  return <BlogCard item={item} index={index} pfp={userSelector.profilePicture} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"} />
-                }) : blogFound ? myBlogs.map((item, index) => {
-                  return <BlogCard item={item} index={index} pfp={userSelector.profilePicture} deleteBlog={deleteBlog} showModal={showModal} page={"dashboard"} />
-                }) : <div>
-                  <h1 className='text-black font-semibold'>No blog found</h1>
-                </div>}
+                {renderBlogs()}
               </div>
             </div>
           </div>

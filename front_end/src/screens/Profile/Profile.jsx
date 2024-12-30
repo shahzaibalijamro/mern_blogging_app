@@ -54,7 +54,7 @@ const Profile = () => {
             }
             if (error.response.data.message = "User does not exist!") return removeUser();
             showSnackbar(`Something went wrong!`, 3000);
-        }finally{
+        } finally {
             document.getElementById('my_modal_1').close();
         }
     };
@@ -80,7 +80,7 @@ const Profile = () => {
             if (data.accessToken) {
                 const token = data.accessToken;
                 console.log("token recieved from middleware");
-                
+
                 dispatch(setAccessToken({ token, }));
                 localStorage.setItem('accessToken', token);
             }
@@ -94,7 +94,7 @@ const Profile = () => {
             }
             if (error.response.data.message = "User does not exist!") return removeUser()
             // console.log("Niche tak aagaya");
-        }finally{
+        } finally {
             document.getElementById('my_modal_2').close();
         }
     }
@@ -115,16 +115,16 @@ const Profile = () => {
         const formData = new FormData();
         formData.append("image", file);
         try {
-            const {data} = await axios.post("/api/v1/pfp",formData,{
+            const { data } = await axios.post("/api/v1/pfp", formData, {
                 headers: {
-                    'Authorization' : `Bearer ${tokenSelector}`,
+                    'Authorization': `Bearer ${tokenSelector}`,
                     'Content-Type': 'multipart/form-data'
                 }
             })
             console.log(data);
-            const {user} = data;
+            const { user } = data;
             dispatch(addUser({ currentUser: user }));
-            showSnackbar(`Profile picture updated!`,3000);
+            showSnackbar(`Profile picture updated!`, 3000);
             if (data.accessToken) {
                 const token = data.accessToken;
                 console.log("token recieved from middleware");
@@ -134,15 +134,19 @@ const Profile = () => {
         } catch (error) {
             console.log(error)
             if (error.response.data.message = "User does not exist!") return removeUser()
-            showSnackbar(`Could not update profile picture!`,3000);
+            showSnackbar(`Could not update profile picture!`, 3000);
         }
         event.target.value = ''
     }
-    const deleteAccount = async()=>{
+    const openDeleteModal = async () => {
+        const deleteModal = document.getElementById("my_modal_3");
+        deleteModal.showModal()
+    }
+    const deleteAccount = async () => {
         try {
-            const {data} = await axios.post("/api/v1/delete",{},{
+            const { data } = await axios.post("/api/v1/delete", {}, {
                 headers: {
-                    'Authorization' : `Bearer ${tokenSelector}`
+                    'Authorization': `Bearer ${tokenSelector}`
                 }
             })
             console.log(data);
@@ -155,7 +159,7 @@ const Profile = () => {
             minHeight: '100vh'
         }}>
             <dialog id="my_modal_1" className="modal">
-                <div className="modal-box bg-white">
+            <div className="modal-box bg-white relative">
                     <div className="gap-4 rounded-xl bg-white">
                         <form method="dialog" className="modal-backdrop" onSubmit={editUserNameAndFullName}>
                             <input
@@ -174,20 +178,26 @@ const Profile = () => {
                                 className="input mt-3 text-[#6c757d] input-bordered w-full"
                                 required
                             />
-                            <div className="mt-3">
+                            <div className="mt-3 flex justify-between items-center">
                                 <button
                                     type="submit"
                                     className="btn text-white postBtn bg-[#7749f8] border-[#7749f8] btn-active hover:bg-[#561ef3] btn-neutral"
                                 >
-                                    Edit Blog
+                                    Save
                                 </button>
+                                <h1
+                                    onClick={() => document.getElementById("my_modal_1").close()}
+                                    className="text-black font-medium border-b border-black cursor-pointer"
+                                >
+                                    Back
+                                </h1>
                             </div>
                         </form>
                     </div>
                 </div>
             </dialog>
             <dialog id="my_modal_2" className="modal">
-                <div className="modal-box bg-white">
+            <div className="modal-box bg-white relative">
                     <div className="gap-4 rounded-xl bg-white">
                         <form onSubmit={passwordReset}>
                             <input
@@ -206,18 +216,47 @@ const Profile = () => {
                                 className="input  mt-3 text-[#6c757d] input-bordered w-full"
                                 required
                             />
-                            <div className="mt-3">
+                            <div className="mt-3 flex justify-between items-center">
                                 <button
                                     type="submit"
                                     className="btn text-white postBtn bg-[#7749f8] border-[#7749f8] btn-active hover:bg-[#561ef3] btn-neutral"
                                 >
                                     Update Password
                                 </button>
+                                <h1
+                                    onClick={() => document.getElementById("my_modal_2").close()}
+                                    className="text-black font-medium border-b border-black cursor-pointer"
+                                >
+                                    Back
+                                </h1>
                             </div>
                         </form>
                     </div>
                 </div>
             </dialog>
+            <dialog id="my_modal_3" className="modal">
+                <div className="modal-box bg-white relative">
+                    <h1
+                        onClick={() => document.getElementById("my_modal_3").close()}
+                        className="absolute cursor-pointer top-1 right-3 text-black font-bold text-[1.5rem]"
+                    >
+                        ×
+                    </h1>
+                    <div className="gap-4 rounded-xl bg-white">
+                        <h1 className="text-center font-medium text-black">
+                            Are you sure you want to delete your account? This action cannot be undone, and all your blogs will be permanently deleted.
+                        </h1>
+                        <button
+                            onClick={openDeleteModal}
+                            id="reset-Btn"
+                            className="btn mt-3 text-white font-bold w-full bg-[#f44336] border-[#f44336] hover:border-[#cf2b1f] btn-active hover:bg-[#cf2b1f] btn-neutral"
+                        >
+                            Yes, I am sure
+                        </button>
+                    </div>
+                </div>
+            </dialog>
+
             <div id="snackbar"></div>
             <Greeting />
             <div className="my-container">
@@ -258,7 +297,7 @@ const Profile = () => {
                                     Reset Password?
                                 </button>
                                 <button
-                                    onClick={deleteAccount}
+                                    onClick={openDeleteModal}
                                     id="reset-Btn"
                                     className="btn mt-3 text-white font-bold w-full bg-[#f44336] border-[#f44336] btn-active hover:bg-[#cf2b1f] btn-neutral"
                                 >
