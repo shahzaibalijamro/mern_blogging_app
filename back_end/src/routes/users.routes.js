@@ -14,12 +14,12 @@ userRouter.post("/login", loginUser)
 userRouter.delete("/delete", verifyRequest, deleteUser)
 
 //update Username or Fullname
-userRouter.post("/update",verifyRequest, updateFullNameOrUserName)
+userRouter.put("/update",verifyRequest, updateFullNameOrUserName)
 
 //update profile picture
-userRouter.post("/pfp",verifyRequest, upload.single("image"), updateProfilePicture)
+userRouter.put("/pfp",verifyRequest, upload.single("image"), updateProfilePicture)
 
 //reset Password
-userRouter.post("/reset",verifyRequest, resetPassword)
+userRouter.put("/reset",verifyRequest, resetPassword)
 
 export { userRouter }

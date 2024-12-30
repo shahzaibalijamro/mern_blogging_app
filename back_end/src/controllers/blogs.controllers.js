@@ -4,7 +4,6 @@ import UserModel from "../models/users.models.js";
 
 const addBlog = async (req, res) => {
     const user = req.user;
-    console.log(user);
     const accesstoken = req.tokens?.accessToken;
     let session;
     try {
@@ -12,8 +11,6 @@ const addBlog = async (req, res) => {
         if (!title || !description) {
             return res.status(400).json({ message: "Blog title,description is required!" });
         }
-        console.log(title,description,user._id);
-        
         session = await mongoose.startSession();
         session.startTransaction();
         const newblog = await blogModel.create([{ title, description, author : user._id}],{session})
@@ -44,8 +41,7 @@ const addBlog = async (req, res) => {
         await session.abortTransaction();
         console.log(error);
         res.status(500).json({
-            message: "An error occurred while adding the blog",
-            error: error.message,
+            message: "An error occurred while adding the blog"
         })
     }finally{
         await session.endSession();
@@ -63,8 +59,7 @@ const allBlogs = async (req, res) => {
         })
     } catch (error) {
         res.status(500).json({
-            message: "Could not fetch all Blogs",
-            error: error.message
+            message: "Could not fetch all Blogs"
         })
     }
 }
@@ -76,26 +71,20 @@ const singleUserBlogs = async (req, res) => {
     const accessToken = req.tokens?.accessToken;
     const { author } = req.params;
     const { sort } = req.params;
-    console.log('Sort value:', sort);
     const sortByLatest = sort === "true";
-    console.log(sortByLatest);
-    
     if ((!author || !mongoose.Types.ObjectId.isValid(author)) && !user) {
         return res.status(400).json({
-            message: "Invalid author ID",
-            status: 400
+            message: "Invalid author ID"
         })
     }
     try {
         const getSingleUserBlogs = await blogModel.find({author: author || user.id || user._id}).populate("author", "-password -refreshToken -publishedBlogs").sort(sort === "false" ? { createdAt: 1 } : { createdAt: -1 });
         if (!getSingleUserBlogs) {
             return res.status(404).json({
-                message: "No blogs found",
-                status: 404
+                message: "No blogs found"
             });
         }
         res.status(200).json({
-            status: 200,
             blogs: getSingleUserBlogs,
             ...(accessToken && {accessToken})
         })
@@ -114,7 +103,6 @@ const deleteBlog = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({
             message: "Invalid ID",
-            status: 400
         })
     }
     try {
@@ -131,7 +119,6 @@ const deleteBlog = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: "Could not delete blog",
-            error: error.message
         })
     }
 }
@@ -157,19 +144,16 @@ const editBlog = async (req, res) => {
             { title, description }, { new: true, runValidators: true })
         if (!updatedblog) {
             return res.status(404).json({
-                message: "blog not found",
-                status: 404
+                message: "blog not found"
             });
         }
         res.status(200).json({
             message: "blog updated",
-            status: 200,
             updatedblog,
         })
     } catch (error) {
         res.status(500).json({
-            message: "Could not update blog",
-            error: error.message
+            message: "Could not update blog"
         })
     }
 }

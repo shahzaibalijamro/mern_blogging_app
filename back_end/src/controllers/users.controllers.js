@@ -4,49 +4,22 @@ import Blog from "../models/blogs.models.js"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { uploadImageToCloudinary } from "../utils/cloudinary.utils.js";
-// generates tokens
-const generateAccessandRefreshTokens = function (user) {
-    const accessToken = jwt.sign({ _id: user._id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
-    });
-    const refreshToken = jwt.sign({ email: user.email, userName: user.userName, _id: user._id, }, process.env.REFRESH_TOKEN_SECRET, {
-        expiresIn: "10d",
-    });
-    return { accessToken, refreshToken }
-}
-
-
+import { generateAccessandRefreshTokens } from "../utils/tokens.utils.js";
 
 // registers User
 const registerUser = async (req, res) => {
-
-    //getting data
     const { userName, fullName, email, password } = req.body;
     if (!req.file) return res.status(400).json({
         message: "No file found"
     })
     const image = req.file.path;
     try {
-
-        //uploading image to cloudinary and expecting the url in return
         const profilePicture = await uploadImageToCloudinary(image)
-
-        //creating data instance
         const user = new User({ userName, fullName, email, password, profilePicture })
-
-        //generating and adding the tokens midway through
         const { accessToken, refreshToken } = generateAccessandRefreshTokens(user)
-
-        //saving the data
         await user.save();
-
-        //sending response if user successfully created
         res
-
-            //Adding cookies
             .cookie("refreshToken", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 })
-
-            //status code with json response
             .status(201).json({
                 message: "New user created",
                 newUser: {
@@ -62,7 +35,6 @@ const registerUser = async (req, res) => {
             })
     } catch (error) {
         console.log(error.message);
-        //error checking
         if (error.message === "Password does not meet the required criteria") {
             return res.status(400).json({ message: "Password does not meet the required criteria!" });
         }
@@ -217,8 +189,6 @@ const resetPassword = async (req, res) => {
 const updateProfilePicture = async (req, res) => {
     const decoded = req.user;
     const accessToken = req.tokens?.accessToken;
-    console.log("decoded token on main", decoded);
-    console.log("accessToken token on main", accessToken);
     if (!req.file) return res.status(400).json({
         message: "No file found"
     })
@@ -226,7 +196,6 @@ const updateProfilePicture = async (req, res) => {
         message: "No token found!"
     })
     const image = req.file.path;
-    console.log(image);
     try {
         const doesUserExist = await User.findById(decoded._id || decoded.id);
         if (!doesUserExist) {

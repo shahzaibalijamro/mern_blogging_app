@@ -5,7 +5,6 @@ import { generateAccessandRefreshTokens } from "../utils/tokens.utils.js";
 //generates access token on app start
 const isUserLoggedIn = async (req, res) => {
     const currentRefreshToken = req.cookies?.refreshToken;
-    console.log(currentRefreshToken);
     if (!currentRefreshToken) {
         return res.status(200).json({
             message: "Refresh token not found!"
@@ -58,8 +57,6 @@ const isUserLoggedIn = async (req, res) => {
 const authenticateUser = async (req, res) => {
     const accessToken = req.headers["authorization"]?.split(" ")[1];
     const { refreshToken } = req.cookies;
-    console.log(accessToken,refreshToken);
-    
     if (!accessToken || !refreshToken) {
         return res.status(401).json({
             message: "Access token and refresh token are required! Please log in again."
