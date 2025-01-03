@@ -7,6 +7,7 @@ import axios from '../../config/api.config.js';
 import { setAccessToken } from '../../config/redux/reducers/accessTokenSlice';
 import useRemoveUser from '../../utils/app.utils.js';
 import { handleMiddlewareErrors } from '../../utils/error.utils.js';
+import { deleteAllBlogs } from '../../config/redux/reducers/allBlogsSlice.js';
 
 const Profile = () => {
     const dispatch = useDispatch();
@@ -48,6 +49,7 @@ const Profile = () => {
                 dispatch(setAccessToken({ token, }));
                 localStorage.setItem('accessToken', token);
             }
+            dispatch(deleteAllBlogs())
         } catch (error) {
             console.log(error);
             const errorMessage = handleMiddlewareErrors(error);
@@ -154,6 +156,7 @@ const Profile = () => {
                 dispatch(setAccessToken({ token, }));
                 localStorage.setItem('accessToken', token);
             }
+            dispatch(deleteAllBlogs())
         } catch (error) {
             console.log(error)
             const errorMessage = handleMiddlewareErrors(error);

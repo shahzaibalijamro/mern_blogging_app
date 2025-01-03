@@ -8,9 +8,12 @@ export const allBlogsSlice = createSlice({
         addAllBlogs: (state, action) => {
             const {response} = action.payload
             state.blogs.push(...response);
+        },
+        deleteAllBlogs: (state, action) => {
+            state.blogs = [];
         }
     }
 })
 
-export const { addAllBlogs } = allBlogsSlice.actions
+export const { addAllBlogs,deleteAllBlogs } = allBlogsSlice.actions
 export default allBlogsSlice.reducer

@@ -46,7 +46,7 @@ const Home = () => {
   useEffect(() => {
     (async () => {
       try {
-        if (!blogSelector.length > 0) {
+        if (!blogSelector?.length > 0) {
           const response = await getAllBlogs()
           setAllBlogs(response)
           dispatch(addAllBlogs({
